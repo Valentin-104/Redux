@@ -1,0 +1,162 @@
+---
+title: Supabase
+date: '2023-01-31'
+tags: ['Supabase', 'Backend', 'Full Stack']
+draft: false
+summary: Supabase로 backend 구현
+---
+
+- Netflix에서 특정 영화를 my list에 담는 기능을 구현하고 싶었다. 이를 위해서는 database가 필요했고, Supabase를 선택했다.
+
+- Supabase는 Firebase의 대안으로서 사용할 수 있는 db다. 사용법이 비슷하고, 차이점이라면 Firebase은 NoSQL, Supabase는 SQL이라는 것이다.
+
+  > [The Open Source Firebase Alternative](https://supabase.com/)
+
+- 기능을 구현하기 위해서는 먼저, 영화가 이미 내 리스트에 있는지 없는지를 구분해야 한다. 왜냐하면 리스트에 이미 있으면 리스트에서 삭제하고, 없으면 추가해야하기 때문이다. 따라서 `alreadyAdded` 라는 상태를 설정해서 버튼을 클릭했을 때 상태값에 따라 아이콘이 바뀌게 만들고, click event에 `handleMyList` 라는 함수를 걸었다.
+    
+    ```tsx
+    <button onClick={handleMyList}>
+      {alreadyAdded ? (
+        <svg
+          xmlns='http://www.w3.org/2000/svg'
+          viewBox='0 0 24 24'
+          fill='currentColor'
+          className='w-6 h-6'
+        >
+          <path
+            fillRule='evenodd'
+            d='M9 1.5H5.625c-1.036 0-1.875.84-1.875 1.875v17.25c0 1.035.84 1.875 1.875 1.875h12.75c1.035 0 1.875-.84 1.875-1.875V12.75A3.75 3.75 0 0016.5 9h-1.875a1.875 1.875 0 01-1.875-1.875V5.25A3.75 3.75 0 009 1.5zm6.61 10.936a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 14.47a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z'
+            clip-rule='evenodd'
+          />
+          <path d='M12.971 1.816A5.23 5.23 0 0114.25 5.25v1.875c0 .207.168.375.375.375H16.5a5.23 5.23 0 013.434 1.279 9.768 9.768 0 00-6.963-6.963z' />
+        </svg>
+      ) : (
+        <svg
+          xmlns='http://www.w3.org/2000/svg'
+          viewBox='0 0 20 20'
+          fill='currentColor'
+          className='w-5 h-5'
+        >
+          <path
+            fillRule='evenodd'
+            d='M3.75 3A1.75 1.75 0 002 4.75v10.5c0 .966.784 1.75 1.75 1.75h12.5A1.75 1.75 0 0018 15.25v-8.5A1.75 1.75 0 0016.25 5h-4.836a.25.25 0 01-.177-.073L9.823 3.513A1.75 1.75 0 008.586 3H3.75zM10 8a.75.75 0 01.75.75v1.5h1.5a.75.75 0 010 1.5h-1.5v1.5a.75.75 0 01-1.5 0v-1.5h-1.5a.75.75 0 010-1.5h1.5v-1.5A.75.75 0 0110 8z'
+            clipRule='evenodd'
+          />
+        </svg>
+      )}
+    </button>
+    ```
+    
+- `handleMyList` 는 앞서 말했듯이 버튼을 클릭했을 때, 영화가 리스트에 이미 있으면 삭제하고, 없으면 추가하는 함수이다.
+    
+    ```ts
+    const handleMyList = () => {
+        if (alreadyAdded) {
+          removeFromList();
+        } else {
+          addToList();
+        }
+      };
+    ```
+    
+- Supabase를 활용할 차례다. My List라는 table을 만들고, column을 설계했다.
+    
+    ![db](/static/images/supabase.png)
+    유저가 로그인한 이메일과, 저장한 영화를 매칭하는 방식이다. 영화는 `Moive` 타입 객체의 배열이다.
+    
+
+- 먼저 영화를 선택했을 때 이미 추가된 영화인지 아닌지를 판단한다.
+    
+    ```ts
+    import { supabase } from '@/utils/supabase';
+    import { useSession } from 'next-auth/react';
+    import { Movie } from '@/pages';
+    import { selectedMovieState } from '@/atoms/modalAtoms';
+    import { useRecoilState } from 'recoil';
+    import { useEffect, useState } from 'react';
+    
+    export default function Modal() {
+    	const { data: session } = useSession();
+    	const email = session?.user?.email; // 유저가 로그인한 이메일
+    	const [selectedMovie, setSelectedMovie] = useRecoilState(selectedMovieState); // 선택한 영화
+        const [alreadyAdded, setAlreadyAdded] = useState<boolean>(false);
+    
+    	useEffect(() => {
+    	    const checkAlreadyAdded = async () => {
+    		    const { data } = await supabase
+    			    .from('My List')  // My List라는 table에서,
+    			    .select('movies')  // movies라는 column만을 선택하여 불러온다. 
+    			    .eq('email', email);  // 단, 모든 데이터가 아닌 유저가 로그인한 이메일에 해당하는 데이터만 불러온다.
+    																	
+    			// data를 console에 찍어보면 이런 식으로 나온다. e.g. [{movies: ...}]
+    			// 따라서 내가 원하는 나의 영화 리스트는 다음과 같다.
+    			const moviesFromList: Movie[] = data![0].movies;
+    	
+    	        setAlreadyAdded(
+    	          !!moviesFromList.find((movie) => movie.id === selectedMovie?.id)
+    	        );  // 원래 내 리스트에 있던 영화의 id와 지금 선택한 영화의 id를 비교하여 같은 것이 있는지 찾아본다. 있으면 그 영화 요소가 return될 것이고, 없으면 undefined가 return될 것이다. 이를 !!를 통해 boolean값으로 바꿔준다.
+    	    };
+    	
+    	    checkAlreadyAdded();
+    	  }, [email, selectedMovie?.id]);
+    	}
+    ```
+    
+
+- Supabase를 활용하여 데이터를 추가하는 `addToList` 함수
+    
+    ```ts
+    const addToList = async () => {
+        const { data } = await supabase
+          .from('My List')
+          .select('movies')
+          .eq('email', email);
+    
+        const moviesFromList: Movie[] = data![0].movies;
+    
+        const { error } = await supabase
+          .from('My List')
+          .update({
+            movies: [...moviesFromList, selectedMovie],  // 영화 리스트에 선택한 영화를 추가
+          })
+          .eq('email', email);
+    
+        if (error) {
+          console.log(error);
+        } else {
+          setAlreadyAdded(true);  // 이 영화를 이미 추가된 영화로 상태값을 바꿔준다.
+        }
+      };
+    ```
+    
+- Supabase를 활용하여 데이터를 삭제하는 `removeFromList` 함수
+
+  ```ts
+  const removeFromList = async () => {
+      const { data } = await supabase
+        .from('My List')
+        .select('movies')
+        .eq('email', email);
+  
+      const moviesFromList: Movie[] = data![0].movies;
+  
+  	// 영화 리스트에 있는 영화의 id와 선택한 영화의 id를 비교하여, 같은 id가 있다면 그 영화는 빼버리고 나머지 영화를 걸러낸다.
+  	const { error } = await supabase
+        .from('My List')
+        .update({
+          movies: moviesFromList.filter(
+            (movie) => movie.id !== selectedMovie?.id  
+          ),
+        })
+        .eq('email', email);  
+  		
+  
+      if (error) {
+        console.log(error);
+      } else {
+        setAlreadyAdded(false);  // 추가된 영화가 아닌 걸로 상태값을 바꿔준다.
+      }
+    };
+  ```
+  
+  > [Netflix Clone](https://github.com/Valentin1495/Netflix)

@@ -1,0 +1,131 @@
+---
+title: YouTube 비디오 삽입
+date: '2023-02-14'
+draft: false
+tags: ['ChatGPT']
+summary: ChatGPT가 알려주는 코드
+---
+
+- TMDB API로부터 영화의 예고편을 불러오고 싶었다. 그래서 ChatGPT에게 물어보았다.
+    
+    > how do I get a video trailer of a movie from tmdb api with react and axios?
+
+- 그의 코드.
+    
+    ```tsx
+    import React, { useState, useEffect } from 'react';
+    import axios from 'axios';
+    
+    const MovieTrailer = ({ movieId }) => {
+      const [trailerUrl, setTrailerUrl] = useState('');
+    
+      useEffect(() => {
+        const getTrailer = async () => {
+          try {
+            const response = await axios.get(`https://api.themoviedb.org/3/movie/${movieId}/videos`, {
+              params: {
+                api_key: 'your_api_key_here',
+              },
+            });
+    
+            const videos = response.data.results;
+            const trailer = videos.find(video => video.type === 'Trailer');
+    
+            if (trailer) {
+              const trailerUrl = `https://www.youtube.com/watch?v=${trailer.key}`;
+              setTrailerUrl(trailerUrl);
+            }
+          } catch (error) {
+            console.error(error);
+          }
+        };
+    
+        getTrailer();
+      }, [movieId]);
+    
+      return (
+        <>
+          {trailerUrl && (
+            <iframe
+              width="560"
+              height="315"
+              src={trailerUrl}
+              frameBorder="0"
+              allowFullScreen
+              title="Movie Trailer"
+            />
+          )}
+        </>
+      );
+    };
+    
+    export default MovieTrailer;
+    ```
+    
+
+    한 영화의 여러가지 타입의 비디오들을 불러와서, 그 중 trailer 타입을 찾고, 그 trailer의 key를 YouTube 비디오 url에 parameter로 넣어주는 방식이다. 그대로 해봤다. 그랬더니 이런 에러가 났다.
+
+    ![Youtube Error.png](/static/images/youtube-error.png)
+
+- 다시 ChatGPT에게 물어보자 돌아온 답변.
+
+  > The error message you're seeing indicates that the YouTube server is configured to prevent the video from being embedded in an iframe element on a different domain.
+  >
+  > This is a security feature called the X-Frame-Options header. The sameorigin value tells the browser that the video can only be embedded on a page with the same origin as the YouTube server (i.e., youtube.com).
+  > 
+  > To work around this issue, you can try using a different method to embed the video. One option is to use the YouTube API to retrieve the video information and then use a library like react-player to render the video.
+    
+  YouTube 서버가 YouTube 말고 다른 도메인에서는 `iframe` 요소를 통해 YouTube 비디오를 삽입할 수 없게 설정해놨다는 것이다. 즉, YouTube 서버와 같은 origin인 `youtube.com`이 아니라 `localhost:3000`에서 요청을 보냈기 때문에 거절당한 것 같다.
+
+- 해결책으로 `react-player` 라는 라이브러리를 제안했지만, 굳이 라이브러리를 써야 되나 하는 생각으로 다시 물어봤다.
+    
+    > can I use html iframe tag instead of react player?
+
+- 답변.
+    
+    > you can use the YouTube API to retrieve the video information and extract the video ID, then use that ID to construct the embed URL. Here's an example:
+    
+    ```tsx
+    import React from 'react';
+    import axios from 'axios';
+    
+    const MovieTrailer = ({ movieId }) => {
+      const [trailerId, setTrailerId] = React.useState('');
+    
+      React.useEffect(() => {
+        const fetchTrailer = async () => {
+          try {
+            const response = await axios.get(
+              `https://api.themoviedb.org/3/movie/${movieId}/videos?api_key=your_api_key_here`
+            );
+            const trailer = response.data.results.find(
+              (result) => result.type === 'Trailer' && result.site === 'YouTube'
+            );
+            if (trailer) {
+              setTrailerId(trailer.key);
+            }
+          } catch (error) {
+            console.error(error);
+          }
+        };
+    
+        fetchTrailer();
+      }, [movieId]);
+    
+      const embedUrl = `https://www.youtube.com/embed/${trailerId}`;
+    
+      return (
+        <div>
+          {trailerId && (
+            <div>
+              <iframe src={embedUrl} title="movie-trailer" allowFullScreen></iframe>
+            </div>
+          )}
+        </div>
+      );
+    };
+    
+    export default MovieTrailer;
+    ```
+    
+    비디오 url을 `https://www.youtube.com/watch?v=${trailer.key}`이 아닌, `https://www.youtube.com/embed/${trailer.key}`로 쓰라는 것이다. 이렇게 하니 에러가 사라지고, YouTube에 있는 영화 예고편 비디오가 잘 재생되었다.
