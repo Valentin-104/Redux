@@ -1,0 +1,86 @@
+---
+title: 페이지 최상단으로 스크롤
+date: '2023-05-12'
+tags: ['project', 'NFT Trade Shop', 'window']
+draft: false
+summary: window 객체 이용
+---
+
+- 페이지 이동 시 최상단으로 스크롤
+
+  페이지를 아래로 스크롤하고 페이지를 이동하면, 그 스크롤 상태가 그대로 유지되어 다시 위로 스크롤 해야되서 불편했다. 이를 해결하기 위해 또 구글링을 시도했고, 관련된 코드를 찾을 수 있었다.
+        
+    ```tsx:/components/ScrollToTop.tsx
+    import { useEffect } from 'react';
+    import { useLocation } from 'react-router-dom';
+    
+    export default function ScrollToTop() {
+      const { pathname } = useLocation();
+    
+      useEffect(() => {
+        window.scrollTo(0, 0);
+      }, [pathname]);
+      
+      return null;
+    }
+    ```
+    
+    window 객체의 `scrollTo` 라는 method를 이용했다.
+    
+    ```tsx:/src/main.tsx
+    import React from 'react';
+    import ReactDOM from 'react-dom/client';
+    import App from './App';
+    import './index.css';
+    import {
+      QueryCache,
+      QueryClient,
+      QueryClientProvider,
+    } from '@tanstack/react-query';
+    import { BrowserRouter } from 'react-router-dom';
+    import { ToastContainer, toast } from 'react-toastify';
+    import 'react-toastify/dist/ReactToastify.css';
+    import { AxiosError } from 'axios';
+    import ScrollToTop from './components/ScrollToTop';
+    import { RecoilRoot } from 'recoil';    
+
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: {
+          refetchOnWindowFocus: false, // default: true
+        },
+      },
+      queryCache: new QueryCache({
+        onError: (err) => {
+          if (err instanceof AxiosError && err.response?.status !== 400) {
+            toast.error('Something went wrong: ' + err.message);
+          }
+        },
+      }),
+    });   
+
+    ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
+      <React.StrictMode>
+        <QueryClientProvider client={queryClient}>
+          <RecoilRoot>
+            <BrowserRouter>
+              <ScrollToTop />
+              <App />
+              <ToastContainer
+                position='bottom-right'
+                autoClose={5000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+                theme='light'
+              />
+            </BrowserRouter>
+          </RecoilRoot>
+        </QueryClientProvider>
+      </React.StrictMode>
+    );
+    ```

@@ -1,0 +1,136 @@
+---
+title: 검색 기능 with React Router & React Query 
+date: '2023-04-15'
+tags: ['project', 'NFT Trade Shop', 'csr', 'React Query', 'React Router']
+draft: false
+summary: React Router에서 제공하는 Hooks
+---
+
+- 검색 기능
+     
+    1. 검색창에 검색어를 입력하면 그 값을 search params로 하는(?query=검색어) url로 페이지를 이동시키고 싶었다. 구글링을 통해 한 블로그에서 이에 대한 해답을 찾을 수 있었다.
+        
+        > [Navigate to a URL with Query Strings (Search Params) in React Router](https://ultimatecourses.com/blog/navigate-to-url-query-strings-search-params-react-router)
+        
+        ```tsx:/components/Home/Header.tsx
+        import { Link, createSearchParams, useNavigate } from 'react-router-dom';
+        import { FormEvent, useState } from 'react';
+        
+        export default function Header() {
+          const [searchValue, setSearchValue] = useState<string>('');
+        
+          const navigate = useNavigate();
+        
+          const params = { q: searchValue };
+        
+          const handleSubmit = (e: FormEvent) => {
+            e.preventDefault();
+            if (!searchValue.trim()) return;
+        
+            navigate({
+              pathname: '/search',
+              search: `?${createSearchParams(params)}`,
+            });
+          };
+        
+          const accessToken = localStorage.getItem('accessToken');
+          const profilePic = localStorage.getItem('profilePic');
+          const id = localStorage.getItem('id');
+        
+          return (
+            <header className='h-16 z-30 bg-white sticky justify-between top-0 flex items-center sm:pr-8 pr-2.5 sm:pl-6'>
+              <Link to='/' className='font-bold flex items-center'>
+                <img
+                  src='https://www.nfteam008.com/static/media/logo.eec723a59df921859c59.png'
+                  alt='Team logo'
+                  className='h-10 w-10 object-cover'
+                />
+                <h1 className='hidden lg:block'>NFTeam</h1>
+              </Link>
+              <form onSubmit={handleSubmit} className='w-1/2 sm:w-3/5'>
+                <input
+                  value={searchValue}
+                  onChange={(e) => setSearchValue(e.target.value)}
+                  type='text'
+                  className='bg-gray-200 rounded-full p-3 w-full outline-none'
+                  placeholder='Search items and collections...'
+                />
+              </form>
+            </header>
+          );
+        }
+        ```
+        
+        `react-router-dom`에서 제공하는 `createSearchParams` 함수와  `useNavigate` Hook을 사용하여 해결했다.
+        
+    2. 페이지 이동시키는데는 성공했고, 그럼 이제는 search params를 가져와 검색 API에 이용해야한다. 이 또한 같은 블로그에서 해답을 발견할 수 있었다.
+        
+        > [Getting Query Strings (Search Params) in React Router](https://ultimatecourses.com/blog/query-strings-search-params-react-router)
+        
+        ```tsx:/pages/Search.tsx
+        import { useSearchParams } from 'react-router-dom';
+        import { useInfiniteQuery } from '@tanstack/react-query';
+        import { useInView } from 'react-intersection-observer';
+        import { useEffect } from 'react';
+        import ColResults from '../components/Search/ColResults';
+        import { Item } from './CollectionDetails';
+        import ItemCard from '../components/ItemCard';
+        import { search } from '../api/NFTeamApi';
+        import Loader from '../components/Loader';
+        import GallerySkeleton from '../components/Skeleton/GallerySkeleton';
+        
+        export default function Search() {
+          const [searchParams] = useSearchParams();
+          const query = searchParams.get('q');
+        
+          const { status, data, isFetchingNextPage, fetchNextPage } = useInfiniteQuery({
+            queryKey: ['searchResults'],
+            queryFn: ({ pageParam = 1 }) => search(query!, pageParam),
+            getNextPageParam: (lastPage, allPages) =>
+              lastPage.items.hasNext ? allPages.length + 1 : undefined,
+          });
+        
+          const { ref, inView } = useInView();
+        
+          useEffect(() => {
+            if (inView) {
+              fetchNextPage();
+            }
+          }, [inView, fetchNextPage]);
+        
+          return status === 'loading' ? (
+            <section className='grid mb-5 grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5 xl:grid-cols-5'>
+              {[...Array(20).keys()].map((i) => (
+                <GallerySkeleton key={i} />
+              ))}
+            </section>
+          ) : (
+            <div className='p-8'>
+              <em className='text-lg'>Results for {query}</em>
+              <ColResults cols={data?.pages[0].collections} />
+              <h5 className='mt-20 font-bold text-lg'>Item results</h5>
+              {data?.pages[0].items.data.length === 0 ? (
+                <p className='ml-3.5'>We coudln{"'"} find any items.</p>
+              ) : (
+                data?.pages?.map((page, idx) => (
+                  <section
+                    key={idx}
+                    className='py-1.5 grid grid-cols-1 gap-3 md:grid-cols-3 xl:grid-cols-5'
+                  >
+                    {page.items.data.map((item: Item) => (
+                      <ItemCard key={item.itemId} {...item} />
+                    ))}
+                  </section>
+                ))
+              )}
+              <div className='flex justify-center' ref={ref}>
+                {isFetchingNextPage && <Loader />}
+              </div>
+            </div>
+          );
+        }
+        ```
+        
+        이번에는 `react-router-dom`에서 제공하는 `useSearchParams` Hook을 사용하여 해결했다.    
+        
+        검색어가 포함되는 컬렉션과 아이템을 결과로 보여주는데 아이템 결과는 홈페이지와 마찬가지로 `useInfiniteQuery` Hook을 이용해서 무한 스크롤로 보여주었다.

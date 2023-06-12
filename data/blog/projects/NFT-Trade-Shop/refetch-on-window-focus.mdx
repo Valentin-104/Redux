@@ -1,0 +1,35 @@
+---
+title: Refetching on window focus in React Query
+date: '2023-04-30'
+tags: ['project', 'NFT Trade Shop', 'csr', 'React Query']
+draft: false
+summary: How to disable refetching on window focus in React Query
+---
+
+- 프로필 로고와 배너 이미지 수정
+    - 프로필 수정 페이지에서 로고와 배너 이미지를 바꾸고 싶었다. 로고를 바꾸니, 잘 됐다. 그 다음에 배너를 바꾸려고 배너 이미지를 클릭하는 순간, 갑자기 로고가 원래 로고로 되돌아갔다. 혼란스러움과 함께 이번에는 배너를 먼저 바꾸고 로고를 바꿔봤다. 배너는 잘 바뀌나, 로고를 바꾸려고 로고 이미지를 클릭하는 순간, 역시 배너가 원래 배너로 돌아갔다.
+    - 처음에는 도저히 원인을 알 수가 없었다. 왜 이럴까 계속 생각을 해봤는데, 일단 확실한 건 data refetching이 일어난다는 것이었다. 그렇기 때문에 바꾸기 전의 원래 data의 로고와 배너 이미지로 돌아가는 것이다.
+    - 그러면 이제 이 현상이 왜 일어나는지만 알면 된다. 혼자 고민해봤지만 알 수가 없어, 역시나 구글링을 통해 해결할 수 있었다.
+      - React Query의 `useQuery` Hook은 window 창이 focus될 때 자동으로 데이터를 다시 불러온다. 그런데 이미지를 등록하기 위해 `input`요소를 클릭할 때, window가 focus되기 때문에 data refetching이 일어나는 것이었다. 때문에 원래의 로고와 배너 이미지로 돌아갔던 것이다.
+      - 그러면 이 자동 refetching을 어떻게 방지할 수 있을까? `React Query`의 github discussions에서 나와 같은 문제를 겪는 사람들이 있었고, 거기 소속된 분이 답변을 달아주었다. discussions에는 나처럼 `React Query`를 사용하면서 생기는 많은 질문들과 그에 대한 답변들이 있으니 참고하면 좋을 거 같다.
+        
+        > [TanStack/query · discussions](https://github.com/TanStack/query/discussions)
+
+        ```ts:/src/main.tsx
+        const queryClient = new QueryClient({
+          defaultOptions: {
+            queries: {
+              refetchOnWindowFocus: false, // default: true
+            },
+          },
+          queryCache: new QueryCache({
+            onError: (err) => {
+              if (err instanceof AxiosError && err.response?.status !== 400) {
+                toast.error('Something went wrong: ' + err.message);
+              }
+            },
+          }),
+        });
+        ```
+        
+        `queryClient` 를 만들 때, `refetchOnWindowFocus` 옵션을 false로 설정하면 된다.
