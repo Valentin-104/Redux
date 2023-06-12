@@ -1,0 +1,28 @@
+---
+title: Utility Types
+date: '2023-04-26'
+tags: ['TypeScript']
+draft: false
+summary: 멘토님이 가르쳐주신 Utility Types
+---
+    
+    > [Utility Types](https://www.typescriptlang.org/ko/docs/handbook/utility-types.html)
+    
+    ```ts:/components/Profile/ProfileBio.tsx
+    interface Bio {
+      nickname: string;
+      description: string;
+    }
+    
+    interface Props extends Bio {
+      id: number | undefined;
+      profileImageName: string;
+      bannerImageName: string;
+    }
+    
+    type ProfileInfo = Omit<Props, 'id'>;
+    ```
+    
+    여러 Utility Type 중에 `Omit`을 사용했다. 왜냐하면, Props에서 `id`라는 key만 제외한 나머지 key를 갖는 type을 쓰고 싶었기 때문이다.
+    
+    이외에도 여러가지 Utility Type을 활용하면 반복되는 key들을 일일이 적지 않고 간단하게 type을 정의할 수 있다.

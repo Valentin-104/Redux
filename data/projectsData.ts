@@ -1,20 +1,10 @@
 const projectsData = [
-  // {
-  //   title: 'A Search Engine',
-  //   description: `What if you could look up any information in the world? Webpages, images, videos
-  //   and more. Google has many features to help you find exactly what you're looking
-  //   for.`,
-  //   imgSrc: '/static/images/google.png',
-  //   href: 'https://www.google.com',
-  // },
-  // {
-  //   title: 'The Time Machine',
-  //   description: `Imagine being able to travel back in time or to the future. Simple turn the knob
-  //   to the desired date and press "Go". No more worrying about lost keys or
-  //   forgotten headphones with this simple yet affordable solution.`,
-  //   imgSrc: '/static/images/time-machine.jpg',
-  //   href: '/blog/the-time-machine',
-  // },
+  {
+    title: 'NFT Trade Shop',
+    description: `NFT 발행 및 거래부터, 원하는 코인 구매까지 한 곳에서 모든 것이 가능한 ONE-STOP 가상 NFT 거래소`,
+    imgSrc: '/static/images/nft.png',
+    href: '/blog/nft-trade-shop',
+  },
 ]
 
 export default projectsData

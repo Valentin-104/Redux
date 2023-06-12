@@ -1,0 +1,294 @@
+---
+title: NFT Trade Shop - 2. Rendering & Data Fetching
+date: '2023-02-23'
+tags: ['project', 'csr', 'React Query']
+draft: false
+summary: Rendering & Data Fetching 
+---
+  ## Rendering & Data Fetching
+  - 공식 홈페이지에서는 `React Query`를 이렇게 정의해 놓았다.
+
+    > It makes fetching, caching, synchronizing and updating server state      
+    > in your web applications a breeze.
+ 
+    웹 앱에서 서버의 상태를 불러오고, caching하며, 지속적으로 동기화하고 업데이트 하는 작업을 도와주는 라이브러리라는 뜻이다. 여기서 서버의 상태란 API로 클라이언트에게 제공될 수 있는 서버의 데이터와 API로 추가/수정/삭제가 될 수 있는 서버의 데이터를 말한다. `React Query`는 API 요청을 `Query` 와 `Mutation`이라는 두 가지 유형으로 나누어 생각한다.
+
+  - `Query`
+
+    `useQuery` Hook으로 수행되는 `Query` 요청은 HTTP METHOD GET 요청과 같이 서버에 저장되어 있는 상태를 불러와 사용할 때 사용한다. `useQuery`는 요청마다 (API마다) 구분되는 Unique Key (aka. Query Key)를 필요로 한다. `React Query`는 이 Unique Key로 서버 상태 (aka. API Response)를 로컬에 캐싱하고 관리한다.
+
+    - `useQuery`Hook을 사용하여 회원 정보를 가져온다.
+
+        ```tsx:/pages/Account.tsx
+        import { Link, useParams } from 'react-router-dom';
+        import { useQuery } from '@tanstack/react-query';
+        import NotFound from './NotFound';
+        import { getUser } from '../api/NFTeamApi';
+        import { Item } from './CollectionDetails';
+        import { useState } from 'react';
+        import ItemCard from '../components/ItemCard';
+        import { BiDotsVerticalRounded } from 'react-icons/bi';
+        import AlertModal from '../components/Profile/AlertModal';
+
+        export interface Member {
+          memberId: number;
+          bannerImageName: string;
+          profileImageName: string;
+          nickname: string;
+          description: string;
+        }
+
+        interface Profile {
+          member: Member;
+          items: Item[];
+        }
+
+        export default function Account() {
+          const { userId } = useParams();
+          const myId = localStorage.getItem('id');
+          const [items, setItems] = useState<Item[] | undefined>();
+          const [user, setUser] = useState<Member | undefined>();
+          const [showModal, setShowModal] = useState(false);
+
+          const { isLoading, data } = useQuery<Profile>({
+            queryKey: ['members', userId],
+            queryFn: () => getUser(userId!),
+            onSuccess: (data) => {
+              setUser(data.member);
+              if (data.items?.length) {
+                setItems(data.items);
+              }
+            },
+          });
+
+          if (isLoading) return <p>Loading...</p>;
+
+          if (!data) return <NotFound />;
+
+          return (
+            <div className='space-y-10'>
+              <section className='relative h-[300px]'>
+                <img
+                  src={
+                    user?.bannerImageName ||
+                    import.meta.env.VITE_IMAGE_URL + user?.bannerImageName
+                  }
+                  alt='User banner'
+                  className='w-full h-full object-cover'
+                />
+                <img
+                  src={user?.profileImageName}
+                  alt='User logo'
+                  className='rounded-full object-cover absolute -bottom-5 border-[6px] shadow-lg border-white left-8 w-24 h-24 sm:w-32 sm:h-32 lg:w-44 lg:h-44'
+                />
+              </section>
+
+              <section className='space-y-2 flex px-8'>
+                <article className='space-y-2 flex-1'>
+                  <h1 className='font-bold text-3xl'>{user?.nickname}</h1>
+                  <p>{user?.description}</p>
+                </article>
+                <article className='relative'>
+                  <button
+                    className={`${myId === userId ? 'inline-flex' : 'hidden'} dots`}
+                  >
+                    <BiDotsVerticalRounded className='w-6 h-6' />
+                  </button>
+                  <div className='dots-dropdown flex flex-col w-32 absolute top-6 right-3 bg-white rounded-md'>
+                    <Link
+                      to={'/account/profile'}
+                      className='hover:bg-gray-200 text-center py-2 cursor-pointer'
+                    >
+                      Edit profile
+                    </Link>
+                    <div
+                      onClick={() => {
+                        setShowModal(true);
+                        console.log('clicked');
+                      }}
+                      className='hover:bg-gray-200 text-center py-2 cursor-pointer'
+                    >
+                      Delete profile
+                    </div>
+                  </div>
+                </article>
+              </section>
+
+              <AlertModal
+                userId={userId}
+                showModal={showModal}
+                setShowModal={setShowModal}
+              />
+
+              <section className='grid mb-5 grid-cols-1 md:grid-cols-3 gap-5 xl:grid-cols-5 p-8'>
+                {items?.map((item) => (
+                  <ItemCard
+                    key={item.itemId}
+                    {...item}
+                  />
+                ))}
+              </section>
+            </div>
+          );
+        }
+        ```
+        
+    - `Mutation`
+      
+      `useMutation` Hook으로 수행되는 `Mutation` 요청은 HTTP METHOD POST, PUT, DELETE 요청과 같이 서버에 Side Effect를 발생시켜 서버의 상태를 변경시킬 때 사용한다. `useMutation`의 첫 번째 매개변수는 이 `Mutation` 요청을 수행하기 위한 Promise를 Return하는 함수이며, `useMutation`의 return 값 중 `mutate` (또는 `mutateAsync` )함수를 호출하여 서버에 Side Effect를 발생시킬 수 있다.
+
+        - `useMutation` Hook을 사용한 컬렉션 로고 등록.
+        
+        ```tsx:/components/Collection/CreateLogo.tsx
+            import { useMutation } from '@tanstack/react-query';
+            import { ChangeEvent, useEffect, useRef, useState } from 'react';
+            import { BsImage } from 'react-icons/bs';
+            import useApiPrivate from '../../hooks/useApiPrivate';
+            import { toast } from 'react-toastify';
+            import { AxiosError } from 'axios';
+
+            interface Logo {
+              logoFile: File | undefined;
+              setLogoFile: React.Dispatch<React.SetStateAction<File | undefined>>;
+              logoString: string;
+              setLogoString: React.Dispatch<React.SetStateAction<string>>;
+              setLogoName: React.Dispatch<React.SetStateAction<string>>;
+            }
+
+            export default function CreateLogo({
+              logoFile,
+              setLogoFile,
+              logoString,
+              setLogoString,
+              setLogoName,
+            }: Logo) {
+              const fileInputRef = useRef<HTMLInputElement>(null);
+
+              const [logoTypeError, setLogoTypeError] = useState(false);
+              const [logoSizeError, setLogoSizeError] = useState(false);
+
+              const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+                const file = e.target.files?.[0];
+
+                if (file && file.type.substring(0, 5) !== 'image') {
+                  setLogoTypeError(true);
+                } else {
+                  setLogoTypeError(false);
+                }
+
+                if (file && file.size > 30000000) {
+                  setLogoSizeError(true);
+                } else {
+                  setLogoSizeError(false);
+                }
+
+                if (
+                  file &&
+                  file.type.substring(0, 5) === 'image' &&
+                  file.size <= 30000000
+                ) {
+                  setLogoFile(file);
+                }
+
+                if (!file) {
+                  setLogoFile(undefined);
+                  setLogoName('');
+                }
+              };
+
+              const apiPrivate = useApiPrivate();
+
+              const { mutate, isLoading } = useMutation({
+                mutationFn: (file: FormData) =>
+                  apiPrivate.post('/images', file).then((res) => res.data),
+                onSuccess: (data) => {
+                  setLogoName(data.imageName);
+                },
+                onError: (err: AxiosError) => {
+                  if (err.response?.status !== 403) {
+                    toast.error('Something went wrong: ' + err.message);
+                  }
+                },
+              });
+
+              useEffect(() => {
+                if (logoFile) {
+                  const formData = new FormData();
+                  formData.append('file', logoFile);
+
+                  mutate(formData);
+
+                  const reader = new FileReader();
+                  reader.readAsDataURL(logoFile);
+                  reader.onloadend = () => {
+                    setLogoString(reader.result as string);
+                  };
+                } else {
+                  setLogoString('');
+                }
+              }, [logoFile, setLogoString, mutate]);
+
+              return (
+                <form className='flex flex-col items-center'>
+                  <h3 className='font-bold text-lg'>
+                    Logo image{' '}
+                    <span className='text-red-500 text-xl font-bold align-top'>*</span>
+                  </h3>
+                  <p className='text-sm text-center'>
+                    This image will also be used for navigation.{' '}
+                  </p>
+                  <input
+                    type='file'
+                    className='hidden'
+                    ref={fileInputRef}
+                    accept='image/*'
+                    onChange={handleChange}
+                  />
+                  {logoString ? (
+                    <img
+                      src={logoString}
+                      alt='logo'
+                      role='presentation'
+                      className='h-44 w-44 rounded-full object-cover mt-3 cursor-pointer'
+                      onClick={() => {
+                        setLogoFile(undefined);
+                        setLogoName('');
+                      }}
+                    />
+                  ) : (
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        fileInputRef.current?.click();
+                      }}
+                      className='group relative border-2 border-gray-400 border-dashed rounded-full mt-3 w-44 h-44'
+                    >
+                      <BsImage className='h-20 w-20 text-gray-400 absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2' />
+                      <div className='rounded-full bg-black/60 w-[calc(100%-0.5rem)] h-[calc(100%-0.5rem)] absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 hidden group-hover:block' />
+                    </button>
+                  )}
+                  {isLoading && (
+                    <h5 className='mt-3 font-bold text-gray-500'>
+                      Uploading a logo image...
+                    </h5>
+                  )}
+                  {logoTypeError && (
+                    <div className='mt-3 text-center'>
+                      <h5 className='font-bold text-gray-500'>Unsupported file type</h5>
+                      <p className='text-red-500 font-semibold'>
+                        File type must be image/*
+                      </p>
+                    </div>
+                  )}
+                  {logoSizeError && (
+                    <div className='mt-2 text-center'>
+                      <h5 className='font-bold text-gray-500'>File too large</h5>
+                      <p className='text-red-500 font-semibold'>
+                        File is larger than 30,000,000 bytes
+                      </p>
+                    </div>
+                  )}
+                </form>
+              );
+            }
+        ```
