@@ -2,10 +2,10 @@
 
 /** @type {import("pliny/config").PlinyConfig } */
 const siteMetadata = {
-  title: "Noah's Blog",
-  author: 'Noah Han',
+  title: "Noah Han",
+  author: '한노아',
   headerTitle: 'Noah Han',
-  description: 'Welcome to my blog!',
+  description: 'I love building for the web. From something as simple as a single HTML file – all the way to large Next.js applications.',
   language: 'en-us',
   theme: 'system', // system, dark or light
   siteUrl: 'https://tailwind-nextjs-starter-blog.vercel.app',
@@ -16,6 +16,7 @@ const siteMetadata = {
   email: 'valentink1495@gmail.com',
   twitter: 'https://twitter.com/NoahHan354580',
   github: 'https://github.com/Valentin1495',
+  instagram: 'https://instagram.com/noah.han14',
   locale: 'en-US',
   analytics: {
     // If you want to use an analytics provider you have to add it to the

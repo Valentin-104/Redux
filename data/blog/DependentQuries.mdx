@@ -1,0 +1,73 @@
+---
+title: Dependent Quries
+date: '2023-04-03'
+tags: ['React Query', 'ChatGPT']
+draft: false
+summary: ChatGPT가 알려주는 React Query
+---
+
+- 기존에는 모든 유저 정보를 local storage에 저장했지만, accesss token과 refresh token만 저장하고 이를 이용해 필요할 때마다 API를 호출하여 유저 정보를 불러오는 식으로 바꾸고 싶었다.
+
+- useQuery Hook은 기본적으로 자동 실행된다. 이 설정을 바꾸어 유저가 로그인하여 local storage에 access token이 존재할 경우에만, 이 Hook을 실행하여 유저 정보를 불러온다. 비로그인 유저의 정보를 불러 올 수는 없기 때문이다.
+
+- ChatGPT에게 물어보니 `enabled` option을 사용하면 된다고 알려주었다. 이에 대해 공식 문서를 찾아보니, 정확히 내가 원하는 것이었다.
+    
+    > [Dependent Queries](https://tanstack.com/query/v4/docs/react/guides/dependent-queries)
+    
+
+- 참고하여 작성한 코드.
+    
+    ```ts:/src/components/Home/Header.tsx
+    import { useQuery } from '@tanstack/react-query';
+    import useApiPrivate from '../../hooks/useApiPrivate';
+    import { Profile } from '../../pages/Account';
+    import { getMyPage } from '../../api/NFTeamApi';
+    	
+    export default function Header() {
+      // 기존에는 처음에 로그인할 때 받은 유저 정보를 local storage에 보관하여 필요할 때마다 꺼내서 사용했다.
+      // const profilePic = localStorage.getItem('profilePic');
+      // const id = localStorage.getItem('id');
+    	
+      // 이번에는 유저 정보를 local storage에 계속 보관하는 것이 아닌, 필요할 때마다 API를 호출하여 불러온다.
+      const accessToken = localStorage.getItem('accessToken');
+      const apiPrivate = useApiPrivate();
+    
+      const { isLoading, data } = useQuery<Profile>({
+        queryKey: ['myPage'],
+        queryFn: () => getMyPage(apiPrivate, accessToken),
+        enabled: !!accessToken,
+      });
+    
+      const myId = data?.member.memberId;
+      const myProfilePic = data?.member.profileImageName;
+    }
+    ```
+    
+- 그 다음은 이렇게 불러온 유저 정보로 다른 API를 요청하고 싶었다. 이것도 `enabled`를 사용하여 해결했다. 
+    
+    ```ts:/src/pages/MyCollections.tsx
+    import { useQuery } from '@tanstack/react-query';
+    import { getMyPage, getUserCols } from '../api/NFTeamApi';
+    import ColResult, { Result } from '../components/Search/ColResult';
+    import useApiPrivate from '../hooks/useApiPrivate';
+    import { Profile } from './Account';
+    
+    export default function MyCollections() {
+      const apiPrivate = useApiPrivate();
+      const accessToken = localStorage.getItem('accessToken');
+    
+      const { data: myProfile } = useQuery<Profile>({
+        queryKey: ['myPage'],
+        queryFn: () => getMyPage(apiPrivate, accessToken),
+        enabled: !!accessToken,
+      });
+    
+      const myId = myProfile?.member.memberId;
+    
+      const { isLoading, data } = useQuery<Result[]>({
+      queryKey: ['members', myId, 'cols'],
+      queryFn: () => getUserCols(myId?.toString()!),
+      enabled: !!myId,
+      });
+    }
+    ```
