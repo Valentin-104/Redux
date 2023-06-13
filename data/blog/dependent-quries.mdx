@@ -8,7 +8,7 @@ summary: ChatGPT가 알려주는 React Query
 
 - 기존에는 모든 유저 정보를 local storage에 저장했지만, accesss token과 refresh token만 저장하고 이를 이용해 필요할 때마다 API를 호출하여 유저 정보를 불러오는 식으로 바꾸고 싶었다.
 
-- useQuery Hook은 기본적으로 자동 실행된다. 이 설정을 바꾸어 유저가 로그인하여 local storage에 access token이 존재할 경우에만, 이 Hook을 실행하여 유저 정보를 불러온다. 비로그인 유저의 정보를 불러 올 수는 없기 때문이다.
+- useQuery hook은 기본적으로 자동 실행된다. 이 설정을 바꾸어 유저가 로그인하여 local storage에 access token이 존재할 경우에만, 이 Hook을 실행하여 유저 정보를 불러온다. 비로그인 유저의 정보를 불러 올 수는 없기 때문이다.
 
 - ChatGPT에게 물어보니 `enabled` option을 사용하면 된다고 알려주었다. 이에 대해 공식 문서를 찾아보니, 정확히 내가 원하는 것이었다.
     

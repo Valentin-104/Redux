@@ -1,0 +1,149 @@
+---
+title: Search functionality with useRouter/useQuery hook
+date: '2023-05-17'
+tags: ['custom hook', 'React Query', 'Next.js', 'csr']
+draft: false
+summary: useRouter/useQuery hook을 이용한 검색 기능
+---
+
+1. 모달에서 검색을 한다.
+
+    ```tsx:/components/modals/SearchModal.tsx
+    import { FormEvent, useState } from 'react';
+    import { MagnifyingGlassIcon } from '../Icons';
+    import { useRouter } from 'next/router';
+    import { sortByState } from '@/atoms/sortByAtom';
+    import { useRecoilState, useRecoilValue } from 'recoil';
+    import { searchModalState } from '@/atoms/modalAtoms';
+    import useModal from '@/hooks/useModal';
+
+    export default function SearchModal() {
+      const [showSearchModal, setShowSearchModal] = useRecoilState(searchModalState);
+      const { closeModal } = useModal(showSearchModal, setShowSearchModal);
+
+      const [query, setQuery] = useState<string>('');
+
+      // useRouter hook은 router object를 return하고, 여기에 포함된 method 중 하나가 push이다.
+      const { push } = useRouter();
+
+      const sortBy = useRecoilValue(sortByState);
+
+      const search = (e: FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+
+        // push method를 사용하여 navigate.
+        push(`/products/results?search_query=${encodeURIComponent(query)}&sort=${sortBy}`);
+        closeModal();
+      };
+
+      return (
+        <>
+          <form
+            onSubmit={search}
+            className="modal-contents flex space-x-3 items-center w-[327px] h-[47px] md:w-96 md:h-12 px-3"
+          >
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              type="text"
+              className="text-lg md:text-xl outline-none flex-1"
+              autoFocus
+            />
+            <button type="submit" disabled={!query.trim()} className="disabled:opacity-50 disabled:cursor-not-allowed">
+              <MagnifyingGlassIcon color="main" />
+            </button>
+            <button hidden type="submit" disabled={!query.trim()}></button>
+          </form>
+          <div onClick={closeModal} className="modal-overlay"></div>
+        </>
+      );
+    }
+    ```
+
+2. 검색결과를 가져오는 `useQuery` hook을 custom hook으로 만들었다.
+    
+    ```ts:/hooks/useSearch.ts
+    import search, { SearchType } from '@/apis/searchApi';
+    import { useQuery } from '@tanstack/react-query';
+    
+    // 검색 api는 endpoint에 검색어(searchQuery)와 정렬기준(sortBy)을 매개변수로 받는다.  
+    const useSearch = ({ searchQuery, sortBy }: SearchType) => {
+      return useQuery({
+        queryKey: ['search', searchQuery, sortBy],
+        queryFn: () => search({ searchQuery, sortBy }),
+        // Transform returned data.
+        select: (data) => data.result.products,
+      });
+    };
+  
+    export default useSearch;
+    ```
+
+3. `useSearch` hook을 활용한 검색결과 페이지
+    
+    ```tsx:/pages/products/results/index.tsx
+    import { useEffect } from 'react';
+    import { useRouter } from 'next/router';
+    import { AxiosError } from 'axios';
+    import useSearch from '@/hooks/useSearch';
+    import ProductList from '@/components/products/ProductList';
+    import Layout from '@/components/layout/Layout';
+    import CategoryFilter from '@/components/products/CategoryFilter';
+    import SearchBar from '@/components/products/SearchBar';
+    import Sort from '@/components/products/Sort';
+    import NavBar from '@/components/footer/NavBar';
+    import Footer from '@/components/footer/Footer';
+    import Loader from '@/components/Loader';
+    import Header from '@/components/header/Header';
+    import { useRecoilState, useRecoilValue } from 'recoil';
+    import searchBarState from '@/atoms/searchBarAtom';
+    import { sortByList, sortByState } from '@/atoms/sortByAtom';
+
+    export default function SearchResults() {
+      const [sortBy, setSortBy] = useRecoilState(sortByState);
+      const showSearchBar = useRecoilValue(searchBarState);
+
+      const { query } = useRouter();
+      const {
+        data: searchResults,
+        isLoading,
+        isError,
+        isSuccess,
+        error,
+      } = useSearch({
+        searchQuery: query.search_query as string,
+        sortBy: sortBy.english,
+      });
+      
+      // error의 default type은 unknown인데, 이를 AxiosError로 재설정
+      const err = error as AxiosError;
+
+      useEffect(() => {
+        setSortBy(sortByList[0]);
+      }, [setSortBy]);
+
+      return (
+        <>
+          <Layout>
+            <Header />
+            <CategoryFilter />
+            {showSearchBar ? <SearchBar /> : <div className="h-[55px]"></div>}
+            <Sort />
+            {isLoading && <Loader className="my-10" />}
+
+            {isError &&
+              // error의 status code가 404면 검색 결과가 없는 것
+              (err.response?.status === 404 ? (
+                <p className="text-red font-bold text-center my-10">{query.search_query}에 대한 검색결과가 없습니다.</p>
+              ) : (
+                <p className="text-red font-bold text-center my-10">상품 검색 실패</p>
+              ))}
+
+            {isSuccess && <ProductList products={searchResults} />}
+            <NavBar />
+            <Footer />
+          </Layout>
+        </>
+      );
+    }
+    ```

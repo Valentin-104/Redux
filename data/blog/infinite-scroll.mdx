@@ -109,7 +109,7 @@ summary: ChatGPT가 알려주는 무한 스크롤
   > There could be a few reasons why your page state is increasing by more than 1 when you scroll to the bottom of the page.
   > One possibility is that the useEffect hook that updates the page state is triggering multiple times when you reach the bottom of the page. This can happen if the browser's scroll behavior causes the bottom of the page to overshoot the intersection threshold, triggering the observer multiple times. To prevent this, you can add a debounce to your useCallback function that updates the page state, so that it only triggers once every few hundred milliseconds.
 
-- 2가지 해결책을 제시하였는데, 하나는 `useCallback` Hook에 debounce를 추가하라는 것이었고, 다른 하나는 intersection observer에 root margin을 음수값으로 설정하라는 것이었다.
+- 2가지 해결책을 제시하였는데, 하나는 `useCallback` hook에 debounce를 추가하라는 것이었고, 다른 하나는 intersection observer에 root margin을 음수값으로 설정하라는 것이었다.
 
   먼저 하기 쉬운 root margin부터 설정해보았다. 하지만 결과는 똑같았다. 그래서 debounce를 어떻게 설정하는지 물어보았다.
 
@@ -135,7 +135,7 @@ summary: ChatGPT가 알려주는 무한 스크롤
     );
   ```
 
-- `lodash.debounce`라는 라이브러리를 설치해서 `debounce`라는 함수를 이용하라는 것이었다. 제시한 코드를 보니까,  `debounce`함수로 `useCallback` Hook안의 `setPage` 함수를 감싸주었다.
+- `lodash.debounce`라는 라이브러리를 설치해서 `debounce`라는 함수를 이용하라는 것이었다. 제시한 코드를 보니까,  `debounce`함수로 `useCallback` hook안의 `setPage` 함수를 감싸주었다.
 
 - 이걸 보고 그대로 적용해보았다. 2번 이슈도 해결되었다.
 
@@ -147,7 +147,7 @@ summary: ChatGPT가 알려주는 무한 스크롤
 
   > [stackoverflow](https://stackoverflow.com/questions/69830440/react-hook-usecallback-received-a-function-whose-dependencies-are-unknown-pass)
 
-  `useCallback`대신 `useMemo`Hook을 사용하라는 것이다. 이를 적용한 최종 코드.
+  `useCallback`대신 `useMemo`hook을 사용하라는 것이다. 이를 적용한 최종 코드.
 
   ```tsx
   import { useState, useRef, useEffect, useMemo } from 'react';

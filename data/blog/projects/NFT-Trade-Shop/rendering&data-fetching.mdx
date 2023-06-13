@@ -15,9 +15,9 @@ summary: React Query
 
   - `Query`
 
-    `useQuery` Hook으로 수행되는 `Query` 요청은 HTTP METHOD GET 요청과 같이 서버에 저장되어 있는 상태를 불러와 사용할 때 사용한다. `useQuery`는 요청마다 (API마다) 구분되는 Unique Key (aka. Query Key)를 필요로 한다. `React Query`는 이 Unique Key로 서버 상태 (aka. API Response)를 로컬에 캐싱하고 관리한다.
+    `useQuery` hook으로 수행되는 `Query` 요청은 HTTP METHOD GET 요청과 같이 서버에 저장되어 있는 상태를 불러와 사용할 때 사용한다. `useQuery`는 요청마다 (API마다) 구분되는 Unique Key (aka. Query Key)를 필요로 한다. `React Query`는 이 Unique Key로 서버 상태 (aka. API Response)를 로컬에 캐싱하고 관리한다.
 
-    - `useQuery`Hook을 사용하여 회원 정보를 가져온다.
+    - `useQuery`hook을 사용하여 회원 정보를 가져온다.
 
         ```tsx:/pages/Account.tsx
         import { Link, useParams } from 'react-router-dom';
@@ -135,9 +135,9 @@ summary: React Query
         
     - `Mutation`
       
-      `useMutation` Hook으로 수행되는 `Mutation` 요청은 HTTP METHOD POST, PUT, DELETE 요청과 같이 서버에 Side Effect를 발생시켜 서버의 상태를 변경시킬 때 사용한다. `useMutation`의 첫 번째 매개변수는 이 `Mutation` 요청을 수행하기 위한 Promise를 Return하는 함수이며, `useMutation`의 return 값 중 `mutate` (또는 `mutateAsync` )함수를 호출하여 서버에 Side Effect를 발생시킬 수 있다.
+      `useMutation` hook으로 수행되는 `Mutation` 요청은 HTTP METHOD POST, PUT, DELETE 요청과 같이 서버에 Side Effect를 발생시켜 서버의 상태를 변경시킬 때 사용한다. `useMutation`의 첫 번째 매개변수는 이 `Mutation` 요청을 수행하기 위한 Promise를 Return하는 함수이며, `useMutation`의 return 값 중 `mutate` (또는 `mutateAsync` )함수를 호출하여 서버에 Side Effect를 발생시킬 수 있다.
 
-        - `useMutation` Hook을 사용한 컬렉션 로고 등록.
+        - `useMutation` hook을 사용한 컬렉션 로고 등록.
         
         ```tsx:/components/Collection/CreateLogo.tsx
             import { useMutation } from '@tanstack/react-query';

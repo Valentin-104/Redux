@@ -6,9 +6,9 @@ draft: false
 summary: 로그인 시 쿠키에 jwt 보관
 ---
 
-## Custom Hooks
+## Custom hooks
   
-  1. 로그인 할 때 쓰는 `useMutation` Hook을 custom Hook으로 만들었다.
+  1. 로그인 할 때 쓰는 `useMutation` hook을 custom hook으로 만들었다.
   
      ```ts:/hooks/useLogin.ts
      import { login } from '@/apis/users';
@@ -16,6 +16,7 @@ summary: 로그인 시 쿠키에 jwt 보관
      
      const useLogin = () => {
        const mutationOptions = {
+        // mutate 성공 시 창 새로고침
          onSuccess: () => {
            window.location.reload();
          },
@@ -27,7 +28,7 @@ summary: 로그인 시 쿠키에 jwt 보관
      export default useLogin;
      ```
  
-  2. 로그인 모달을 보여주고 숨기는 것도 custom Hook으로 만들었다. 
+  2. 로그인 모달을 보여주고 숨기는 것도 custom hook으로 만들었다. 
 
      ```ts:hooks/useModal.ts
      import { Dispatch, SetStateAction, useEffect } from 'react';
@@ -110,7 +111,7 @@ summary: 로그인 시 쿠키에 jwt 보관
      };
      ```
 
-  4. 로그인 시 위 Hooks와 함수 활용. 로그인 성공 시 받는 access token과 refresh token은 cookie에 보관한다.
+  4. 로그인 시 위 hooks와 함수 활용. 로그인 성공 시 받는 access token과 refresh token은 cookie에 보관한다.
 
      ```tsx:/components/users/LoginForm.tsx
      import Link from 'next/link';

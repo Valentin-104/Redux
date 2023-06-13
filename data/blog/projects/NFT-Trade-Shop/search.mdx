@@ -3,7 +3,7 @@ title: Search functionality with React Router & React Query
 date: '2023-04-15'
 tags: ['project', 'NFT Trade Shop', 'csr', 'React Query', 'React Router']
 draft: false
-summary: React Router에서 제공하는 Hooks
+summary: React Router에서 제공하는 hooks
 ---
 
 - 검색 기능
@@ -61,7 +61,7 @@ summary: React Router에서 제공하는 Hooks
         }
         ```
         
-        `react-router-dom`에서 제공하는 `createSearchParams` 함수와  `useNavigate` Hook을 사용하여 해결했다.
+        `react-router-dom`에서 제공하는 `createSearchParams` 함수와  `useNavigate` hook을 사용하여 해결했다.
         
     2. 페이지 이동시키는데는 성공했고, 그럼 이제는 search params를 가져와 검색 API에 이용해야한다. 이 또한 같은 블로그에서 해답을 발견할 수 있었다.
         
@@ -131,6 +131,6 @@ summary: React Router에서 제공하는 Hooks
         }
         ```
         
-        이번에는 `react-router-dom`에서 제공하는 `useSearchParams` Hook을 사용하여 해결했다.    
+        이번에는 `react-router-dom`에서 제공하는 `useSearchParams` hook을 사용하여 해결했다.    
         
-        검색어가 포함되는 컬렉션과 아이템을 결과로 보여주는데 아이템 결과는 홈페이지와 마찬가지로 `useInfiniteQuery` Hook을 이용해서 무한 스크롤로 보여주었다.
+        검색어가 포함되는 컬렉션과 아이템을 결과로 보여주는데 아이템 결과는 홈페이지와 마찬가지로 `useInfiniteQuery` hook을 이용해서 무한 스크롤로 보여주었다.
