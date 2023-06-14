@@ -17,7 +17,7 @@ summary: ChatGPT가 알려주는 React Query
 
 - 참고하여 작성한 코드.
     
-    ```ts:/src/components/Home/Header.tsx
+    ```ts:src/components/Home/Header.tsx
     import { useQuery } from '@tanstack/react-query';
     import useApiPrivate from '../../hooks/useApiPrivate';
     import { Profile } from '../../pages/Account';
@@ -45,7 +45,7 @@ summary: ChatGPT가 알려주는 React Query
     
 - 그 다음은 이렇게 불러온 유저 정보로 다른 API를 요청하고 싶었다. 이것도 `enabled`를 사용하여 해결했다. 
     
-    ```ts:/src/pages/MyCollections.tsx
+    ```ts:src/pages/MyCollections.tsx
     import { useQuery } from '@tanstack/react-query';
     import { getMyPage, getUserCols } from '../api/NFTeamApi';
     import ColResult, { Result } from '../components/Search/ColResult';

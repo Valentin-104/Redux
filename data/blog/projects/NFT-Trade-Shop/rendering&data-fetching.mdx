@@ -19,7 +19,7 @@ summary: React Query
 
     - `useQuery`hook을 사용하여 회원 정보를 가져온다.
 
-        ```tsx:/pages/Account.tsx
+        ```tsx:pages/Account.tsx
         import { Link, useParams } from 'react-router-dom';
         import { useQuery } from '@tanstack/react-query';
         import NotFound from './NotFound';
@@ -139,7 +139,7 @@ summary: React Query
 
         - `useMutation` hook을 사용한 컬렉션 로고 등록.
         
-        ```tsx:/components/Collection/CreateLogo.tsx
+        ```tsx:components/Collection/CreateLogo.tsx
             import { useMutation } from '@tanstack/react-query';
             import { ChangeEvent, useEffect, useRef, useState } from 'react';
             import { BsImage } from 'react-icons/bs';

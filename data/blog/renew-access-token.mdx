@@ -1,0 +1,86 @@
+---
+title: Renewing access token using refresh token
+date: '2023-05-20'
+tags: ['auth', 'jwt', 'cookie', 'custom hook']
+draft: false
+summary: access token의 유효 기간이 지나서 만료 되었을 시 refresh token을 이용해 재발급
+---
+
+- `react-hot-toast` library를 이용하여 toast를 띄우는 custom hook
+
+    ```ts:hooks/useToast.ts
+    import { toast } from 'react-hot-toast';
+
+    type ShowToastFunction = (message: string, isError?: boolean) => void;
+
+    const useToast = (): ShowToastFunction => {
+      const showToast: ShowToastFunction = (message, isError = false) => {
+          if (isError) {
+          toast.error(message, {
+              id: 'error',
+          });
+          } else {
+          toast(message, {
+              id: 'regular',
+          });
+          }
+      };
+  
+      return showToast;
+    };
+
+    export default useToast;
+    ```
+
+- access token/refresh token이 만료 되었을 때를 처리하는 custom hook
+    ```ts:hooks/useRefresh.ts
+    import { newAxios } from '@/apis/config';
+    import { getRefreshTokenCookie, removeTokensCookie, setTokensCookie } from '@/utils/cookie';
+    import { useRecoilState } from 'recoil';
+    import useToast from './useToast';
+    import { logInModalState } from '@/atoms/modalAtoms';
+    import { useRouter } from 'next/router';
+    import useModal from './useModal';
+
+    const useRefresh = () => {
+      const showToast = useToast();
+      const { push } = useRouter();
+      const [showLogInModal, setShowLogInModal] = useRecoilState(logInModalState);
+      const { openModal } = useModal(showLogInModal, setShowLogInModal);
+      // 쿠키에 보관된 기존 refresh token
+      const refreshToken = getRefreshTokenCookie();
+  
+      const refresh = async () => {
+          if (refreshToken) {
+          try {
+              const { data } = await newAxios.get('/api/users/refresh', {
+              headers: {
+                  Authorization: `Bearer ${refreshToken}`,
+              },
+              });
+  
+              const { accessToken: newAccessToken, refreshToken: newRefreshToken } = data.result.result;
+  
+              // 새로 발급 받은 access/refresh token을 기존 token들과 교체하여 쿠키에 저장
+              setTokensCookie({ accessToken: newAccessToken, refreshToken: newRefreshToken });
+  
+              return newAccessToken;
+          
+          // refresh token도 만료 되었을 때
+          } catch (error) {
+              openModal();
+              console.error(error);
+              // token들이 보관된 쿠키 삭제
+              removeTokensCookie();
+              push('/');
+              // 재로그인을 요구하는 error toast
+              showToast('로그인을 해주세요', true);
+          }
+          }
+      };
+  
+      return refresh;
+    };
+
+    export default useRefresh;
+    ```

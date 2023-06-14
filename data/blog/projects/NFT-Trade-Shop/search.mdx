@@ -1,5 +1,5 @@
 ---
-title: Search functionality with React Router & React Query
+title: Implementing search functionality with React Router & React Query
 date: '2023-04-15'
 tags: ['project', 'NFT Trade Shop', 'csr', 'React Query', 'React Router']
 draft: false
@@ -12,7 +12,7 @@ summary: React Router에서 제공하는 hooks
         
         > [Navigate to a URL with Query Strings (Search Params) in React Router](https://ultimatecourses.com/blog/navigate-to-url-query-strings-search-params-react-router)
         
-        ```tsx:/components/Home/Header.tsx
+        ```tsx:components/Home/Header.tsx
         import { Link, createSearchParams, useNavigate } from 'react-router-dom';
         import { FormEvent, useState } from 'react';
         
@@ -67,7 +67,7 @@ summary: React Router에서 제공하는 hooks
         
         > [Getting Query Strings (Search Params) in React Router](https://ultimatecourses.com/blog/query-strings-search-params-react-router)
         
-        ```tsx:/pages/Search.tsx
+        ```tsx:pages/Search.tsx
         import { useSearchParams } from 'react-router-dom';
         import { useInfiniteQuery } from '@tanstack/react-query';
         import { useInView } from 'react-intersection-observer';

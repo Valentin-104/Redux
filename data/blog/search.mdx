@@ -1,5 +1,5 @@
 ---
-title: Search functionality with useRouter/useQuery hook
+title: Implementing search functionality with useRouter/useQuery hook
 date: '2023-05-17'
 tags: ['custom hook', 'React Query', 'Next.js', 'csr']
 draft: false
@@ -8,7 +8,7 @@ summary: useRouter/useQuery hook을 이용한 검색 기능
 
 1. 모달에서 검색을 한다.
 
-    ```tsx:/components/modals/SearchModal.tsx
+    ```tsx:components/modals/SearchModal.tsx
     import { FormEvent, useState } from 'react';
     import { MagnifyingGlassIcon } from '../Icons';
     import { useRouter } from 'next/router';
@@ -31,7 +31,7 @@ summary: useRouter/useQuery hook을 이용한 검색 기능
       const search = (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
-        // push method를 사용하여 navigate.
+        // push method를 사용하여 특정 url로 navigate.
         push(`/products/results?search_query=${encodeURIComponent(query)}&sort=${sortBy}`);
         closeModal();
       };
@@ -62,7 +62,7 @@ summary: useRouter/useQuery hook을 이용한 검색 기능
 
 2. 검색결과를 가져오는 `useQuery` hook을 custom hook으로 만들었다.
     
-    ```ts:/hooks/useSearch.ts
+    ```ts:hooks/useSearch.ts
     import search, { SearchType } from '@/apis/searchApi';
     import { useQuery } from '@tanstack/react-query';
     
@@ -81,7 +81,7 @@ summary: useRouter/useQuery hook을 이용한 검색 기능
 
 3. `useSearch` hook을 활용한 검색결과 페이지
     
-    ```tsx:/pages/products/results/index.tsx
+    ```tsx:pages/products/results/index.tsx
     import { useEffect } from 'react';
     import { useRouter } from 'next/router';
     import { AxiosError } from 'axios';

@@ -1,0 +1,125 @@
+---
+title: Writing custom query hook using ChatGPT
+date: '2023-06-01'
+tags: ['React Query', 'query', 'custom hook', 'csr', 'ChatGPT']
+draft: false
+summary: useQuery hook을 custom hook으로 재구성
+---
+
+- 장바구니에 담긴 상품을 조회할 때 get method를 이용하여 `useQuery` hook을 사용하는데, 이를 custom hook으로 쓰고 싶었다. 왜냐하면, `query` logic을 컴포넌트로부터 최대한 분리하고 싶었기 때문이다.
+
+1. ChatGPT에게 물어보니 예제 코드를 던져주었다. 그 코드를 참고해 custom `useQuery` hook을 만들었다. 
+
+    ```ts:hooks/useGetCarts.ts
+    import { getAccessTokenCookie } from '@/utils/cookie';
+    import { useQuery } from '@tanstack/react-query';
+    import { CartItemType } from '@/components/cart/CartItemList';
+    import useAxiosPrivate from './useAxiosPrivate';
+
+    interface CartResult {
+      result: {
+        cartsLists: CartItemType[];
+      };
+    }
+
+    const useGetCarts = () => {
+      const accessToken = getAccessTokenCookie();
+      const axiosPrivate = useAxiosPrivate();
+
+      const getCarts = async () => {
+        const { data } = await axiosPrivate.get('/api/carts');
+
+        return data;
+      };
+
+      return useQuery({
+        queryKey: ['carts'],
+        queryFn: getCarts,
+        // access token이 쿠키에 존재하지 않을 경우 hook 실행 중단, 존재할 경우에만 hook 실행
+        enabled: !!accessToken,
+        // Transform data
+        select: (data: CartResult) => data.result.cartsLists,
+      });
+    };
+
+    export default useGetCarts;
+    ```
+
+2. `useGetCarts` hook 적용 (일부 생략)
+    ```tsx:components/cart/CartItemList.tsx
+    import { useEffect, useState } from 'react';
+    import CartItem from './CartItem';
+    import EmptyCart from './EmptyCart';
+    import Link from 'next/link';
+    import CartDeleteModals from '../modals/CartDeleteModals';
+    import { createPortal } from 'react-dom';
+    import useGetCarts from '@/hooks/useGetCarts';
+    import Loader from '../Loader';
+    import useModal from '@/hooks/useModal';
+    import { useRecoilState, useRecoilValue } from 'recoil';
+    import { buyCompleteModalState, removeCompleteModalState, removeItemModalState } from '@/atoms/modalAtoms';
+    import BuyCompleteModal from '../modals/BuyCompleteModal';
+    import CartPaymentAmountInfo from './CartPaymentAmountInfo';
+
+    export interface CartItemType {
+      name: string;
+      product_id: number;
+      discount_price: number;
+      regular_price: number;
+      quantity: number;
+      minimum_quantity: number;
+      product_image_url: string;
+      selected: boolean;
+    }
+
+    export default function CartItemList() {
+      // useQuery hook이 custom hook으로부터 return되고, 이 hook으로부터 data, isLoading, isError가 return된다.
+      const { data: carts, isLoading, isError } = useGetCarts();
+      const [showBuyCompleteModal, setShowBuyCompleteModal] = useRecoilState(buyCompleteModalState);
+      const [cartItems, setCartItems] = useState<CartItemType[]>([]);
+      const showRemoveCompleteModal = useRecoilValue(removeCompleteModalState);
+      const { openModal } = useModal(showBuyCompleteModal, setShowBuyCompleteModal);
+
+      useEffect(() => {
+        if (carts) {
+          setCartItems(carts);
+        }
+      }, [carts, setCartItems]);
+
+      // 로딩 중일 때는 Loading indicator 렌더링
+      if (isLoading) return <Loader className="h-[494px]" />;
+      // 에러가 났을 때는 에러 메시지 렌더링
+      if (isError) return <p className="text-red center h-[494px] font-bold text-xl">장바구니 조회 실패</p>;
+      
+      // 데이터 불러오기 성공
+      return (
+        <div className="relative h-[494px]">
+          {cartItems?.length === 0 ? (
+            <EmptyCart />
+          ) : (
+            <div className="pt-5 mx-3">
+              {cartItems?.map((item) => (
+                <CartItem key={item.product_id} item={item} />
+              ))}
+
+              <CartPaymentAmountInfo totalCost={totalPrice} totalDiscount={totalDiscountPrice} />
+
+              <div className="center gap-[7px] mt-5">
+                <Link href="/products/categories/0?sort=newest" className="w-[172px] h-[50px] btn-white grow py-[19px]">
+                  다른 제품 보기
+                </Link>
+                <button onClick={openModal} className="w-[172px] h-[50px] btn-primary grow py-[19px]">
+                  구매하기
+                </button>
+              </div>
+            </div>
+          )}
+          {showRemoveItemModal &&
+            createPortal(<CartDeleteModals.CartItemDeleteModal selectedItems={selectedItems} />, document.body)}
+          {showRemoveCompleteModal && createPortal(<CartDeleteModals.DeleteCompletedModal />, document.body)}
+          {showBuyCompleteModal && createPortal(<BuyCompleteModal />, document.body)}
+        </div>
+      );
+    }
+    ```
+

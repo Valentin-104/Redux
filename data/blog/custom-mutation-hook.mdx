@@ -1,0 +1,184 @@
+---
+title: Writing custom mutation hook using ChatGPT
+date: '2023-05-28'
+tags: ['React Query', 'mutation', 'custom hook', 'csr', 'ChatGPT']
+draft: false
+summary: useMutation hook을 custom hook으로 재구성
+---
+
+- 상품을 장바구니에 담을 때 post method를 이용하여 `useMutation` hook을 사용하는데, 이를 custom hook으로 쓰고 싶었다. 왜냐하면, `mutate` logic을 컴포넌트로부터 최대한 분리하고 싶었기 때문이다. 
+
+    1. 이를 위해 먼저 기존에 caching된 query를 invalidate하는 hook을 만들었다.
+
+        ```ts:hooks/useInvalidateQueries.ts
+        import { useQueryClient } from '@tanstack/react-query';
+
+        const useInvalidateQueries = () => {
+          const queryClient = useQueryClient();
+
+          const invalidateQueries = (queryKey: string[]) => {
+            queryClient.invalidateQueries(queryKey);
+          };
+
+          return invalidateQueries;
+        };
+
+        export default useInvalidateQueries;
+        ```
+
+    2. ChatGPT에게 물어보니 예제 코드를 던져주었다. 그 코드를 참고해 위 hook을 option으로 하는 custom `useMutation` hook을 만들었다. 
+
+        ```ts:hooks/useAddToCart.ts
+        import { AddToCartVariables } from '@/components/products/Purchase';
+        import useAxiosPrivate from './useAxiosPrivate';
+        import { useMutation } from '@tanstack/react-query';
+        import useInvalidateQueries from './useInvalidateQueries';
+        import useModal from './useModal';
+        import { useRecoilState } from 'recoil';
+        import { addCompleteModalState } from '@/atoms/modalAtoms';
+        import useToast from './useToast';
+
+        const useAddToCart = () => {
+          const axiosPrivate = useAxiosPrivate();
+          const [showAddCompleteModal, setShowAddCompleteModal] = useRecoilState(addCompleteModalState);
+          const { openModal } = useModal(showAddCompleteModal, setShowAddCompleteModal);
+          const invalidateQueries = useInvalidateQueries();
+          const showToast = useToast();
+
+          // useMutation hook의 첫 번째 인자인 mutation fuction
+          const addToCart = async ({ product_id, quantity }: AddToCartVariables) => {
+            const { data } = await axiosPrivate.post('/api/carts', { product_id, quantity });
+            return data;
+          };
+
+          // 두 번째 인자인 mutation options
+          const mutationOptions = {
+            // 성공 시
+            onSuccess: () => {
+              openModal();
+              // ['carts'] key로 caching 된 query를 invalidate
+              invalidateQueries(['carts']);
+            },
+            // 실패 시
+            onError: () => {
+              showToast('장바구니 담기 실패', true);
+            },
+          };
+
+          // 인자 전달
+          return useMutation(addToCart, mutationOptions);
+        };
+
+        export default useAddToCart;
+        ```
+    
+    3. 모달에서 `useAddToCart` hook 적용
+
+        ```tsx:components/modals/AddToCartModal.tsx
+        import Image from 'next/image';
+        import Counter from '../cart/Counter';
+        import AddCompleteModal from './AddCompleteModal';
+        import { useRecoilValue } from 'recoil';
+        import { addCompleteModalState } from '@/atoms/modalAtoms';
+        import useAddToCart from '@/hooks/useAddToCart';
+        import useModal from '@/hooks/useModal';
+        import { Dispatch, MouseEvent, SetStateAction } from 'react';
+
+        interface AddToCartProps {
+          id: number;
+          product_name: string;
+          main_image_url: string;
+          sale_price: number;
+          regular_price: number;
+          min_quantity: number;
+          showAddToCartModal: boolean;
+          setShowAddToCartModal: Dispatch<SetStateAction<boolean>>;
+          quantity: number;
+          setQuantity: Dispatch<SetStateAction<number>>;
+        }
+
+        export default function AddToCartModal({
+          id,
+          product_name,
+          main_image_url,
+          sale_price,
+          regular_price,
+          min_quantity,
+          showAddToCartModal,
+          setShowAddToCartModal,
+          quantity,
+          setQuantity,
+        }: AddToCartProps) {
+          const originalPrice = (regular_price * quantity).toLocaleString('ko-KR');
+          const discountedPrice = (sale_price * quantity).toLocaleString('ko-KR');
+          const showAddCompleteModal = useRecoilValue(addCompleteModalState);
+
+          const handleCloseModal = (e: MouseEvent) => {
+            e.stopPropagation();
+            setQuantity(min_quantity);
+            closeModal();
+          };
+          const { closeModal } = useModal(showAddToCartModal, setShowAddToCartModal);
+          
+          // custom hook으로부터 return되는 useMutation hook
+          const addToCartMutation = useAddToCart();
+          
+          // 그 hook으로부터 return되는 mutate 함수와 isLoading 상태
+          const { mutate, isLoading } = addToCartMutation;
+
+          return (
+            <>
+              {showAddCompleteModal ? (
+                <AddCompleteModal setShowAddToCartModal={setShowAddToCartModal} />
+              ) : (
+                <>
+                  <div
+                    onClick={(e) => e.stopPropagation()}
+                    className="w-[351px] modal-contents h-auto pt-[30px] px-3 flex-col center modal-box-shadow"
+                  >
+                    <div className="flex w-full space-x-[22px] py-[18px]">
+                      <Image
+                        src={main_image_url}
+                        alt="Thumbnail"
+                        width={86}
+                        height={86}
+                        className="object-cover aspect-square rounded-[10px]"
+                      />
+                      <div>
+                        <h3 className="font-normal">{product_name}</h3>
+                        <span className="font-bold">{sale_price.toLocaleString('ko-KR')}원</span>
+                      </div>
+                    </div>
+
+                    <div className="w-full mb-5 px-2 py-[15px] flex items-center justify-between bg-gray_03">
+                      <Counter minimum_quantity={min_quantity} qty={quantity} setQty={setQuantity} />
+                      <h4 className="font-medium text-main text-body-sm">총 금액</h4>
+                      <div className="flex flex-col text-end">
+                        <span className="font-bold">{discountedPrice}원</span>      
+                        <span className="text-label-sm text-gray_01 line-through">{originalPrice}원</span>
+                      </div>
+                    </div>
+
+                    <div className="center gap-2 py-6">
+                      <button className="btn-white w-[156px] h-[42px] py-[19px]" onClick={handleCloseModal}>
+                        취소
+                      </button>
+                      <button
+                        // 로딩 중일 때는 버튼 비활성화
+                        disabled={isLoading}
+                        className="btn-primary w-[156px] h-[42px] py-[19px] disabled:opacity-50 disabled:cursor-pointer"
+                        // 버튼 클릭 시 mutation 실행
+                        onClick={() => mutate({ product_id: id, quantity })}
+                      >
+                        {/* 로딩 중일 때와 평소 상태의 버튼 텍스트 */}
+                        {isLoading ? '장바구니 담는 중...' : '장바구니 담기'}
+                      </button>
+                    </div>
+                  </div>
+                  <div className="modal-overlay" onClick={handleCloseModal}></div>
+                </>
+              )}
+            </>
+          );
+        }
+        ```

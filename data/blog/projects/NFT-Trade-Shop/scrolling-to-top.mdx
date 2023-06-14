@@ -1,5 +1,5 @@
 ---
-title: Scroll to top
+title: Scrolling to top
 date: '2023-05-12'
 tags: ['project', 'NFT Trade Shop', 'window']
 draft: false
@@ -10,7 +10,7 @@ summary: window 객체 이용
 
   페이지를 아래로 스크롤하고 페이지를 이동하면, 그 스크롤 상태가 그대로 유지되어 다시 위로 스크롤 해야되서 불편했다. 이를 해결하기 위해 또 구글링을 시도했고, 관련된 코드를 찾을 수 있었다.
         
-    ```tsx:/components/ScrollToTop.tsx
+    ```tsx:components/ScrollToTop.tsx
     import { useEffect } from 'react';
     import { useLocation } from 'react-router-dom';
     
@@ -27,7 +27,7 @@ summary: window 객체 이용
     
     window 객체의 `scrollTo` 라는 method를 이용했다.
     
-    ```tsx:/src/main.tsx
+    ```tsx:src/main.tsx
     import React from 'react';
     import ReactDOM from 'react-dom/client';
     import App from './App';

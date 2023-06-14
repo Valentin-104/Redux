@@ -10,7 +10,7 @@ summary: 로그인 시 쿠키에 jwt 보관
   
   1. 로그인 할 때 쓰는 `useMutation` hook을 custom hook으로 만들었다.
   
-     ```ts:/hooks/useLogin.ts
+     ```ts:hooks/useLogin.ts
      import { login } from '@/apis/users';
      import { useMutation } from '@tanstack/react-query';
      
@@ -72,7 +72,7 @@ summary: 로그인 시 쿠키에 jwt 보관
   
   3. token을 cookie에 보관하는 함수. 자주 사용하는 함수들은 `utils` 폴더에 작성하였다.
      
-     ```ts:/utils/cookie.ts
+     ```ts:utils/cookie.ts
      import Cookies from 'js-cookie';
      
      interface Tokens {
@@ -112,8 +112,19 @@ summary: 로그인 시 쿠키에 jwt 보관
      ```
 
   4. 로그인 시 위 hooks와 함수 활용. 로그인 성공 시 받는 access token과 refresh token은 cookie에 보관한다.
+     
+     ```ts:atoms/modalAtoms.ts
+     import { atom } from 'recoil';
 
-     ```tsx:/components/users/LoginForm.tsx
+     const logInModalState = atom<boolean>({
+       key: 'logInModalState', // unique ID (with respect to other atoms/selectors)
+       default: false, // default value (aka initial value)
+     });
+
+     export { logInModalState };
+     ```
+
+     ```tsx:components/users/LoginForm.tsx
      import Link from 'next/link';
      import LabeledInput from './LabeledInput';
      import { SubmitHandler, useForm } from 'react-hook-form';
@@ -138,6 +149,7 @@ summary: 로그인 시 쿠키에 jwt 보관
        });
 
        const [showLoginModal, setShowLoginModal] = useRecoilState(logInModalState);
+       // state의 getter와 setter를 인자로 전달 받는 hook.
        const { closeModal } = useModal(showLoginModal, setShowLoginModal);     
        const loginMutation = useLogin();     
        const { mutate, data: userData, isLoading, error, isSuccess } = loginMutation;     

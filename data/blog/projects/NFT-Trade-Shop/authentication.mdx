@@ -10,7 +10,7 @@ summary: Local storage에 jwt 보관
 - `react-hook-form`을 사용하여 form을 관리했다.(회원가입, 로그인 시)
 - `yup`과 regex를 이용하여 schema를 만들어서 email/password/nickname validation을 진행하였다.
     - 회원가입
-      ```tsx:/pages/Register.tsx 
+      ```tsx:pages/Register.tsx 
       import { QueryClient, useMutation } from '@tanstack/react-query';
       import { signup } from '../api/NFTeamApi';
       import { useForm } from 'react-hook-form';
@@ -172,7 +172,7 @@ summary: Local storage에 jwt 보관
 
     - 로그인
 
-      ```tsx:/pages/Signin.tsx    
+      ```tsx:pages/Signin.tsx    
       import { QueryClient, useMutation } from '@tanstack/react-query';
       import { login } from '../api/NFTeamApi';
       import { useForm } from 'react-hook-form';
@@ -304,7 +304,7 @@ summary: Local storage에 jwt 보관
       
         이를 위해 `react-router-dom`에서 제공하는 `Navigate`, `Outlet`컴포넌트를 활용하였다. 로그인 시 받는 액세스 토큰이 로컬 스토리지에 저장되어 있지 않을 경우, 로그인이 안된 것이기 때문에 로그인 페이지로 리디렉트한다. 
         
-        ```tsx:/components/RequireAuth.tsx
+        ```tsx:components/RequireAuth.tsx
         import { Navigate, Outlet, useLocation } from 'react-router-dom';
 
         export default function RequireAuth() {
@@ -322,7 +322,7 @@ summary: Local storage에 jwt 보관
         `RequireAuth` 컴포넌트로 루트 보호가 필요한 페이지들을 감싸준다.
 
         
-        ```tsx:/src/App.tsx
+        ```tsx:src/App.tsx
         function App() {
           return (
             <div>
@@ -358,7 +358,7 @@ summary: Local storage에 jwt 보관
 
       - 액세스 토큰이 만료될 시 리프레시 토큰이 유효하면 액세스 토큰을 다시 재발급하여 로그인을 유지시키고, 유효하지 않으면 로그아웃시킨다. 이는 custom hook으로 만들어 활용하였다.
         
-        ```ts:/hooks/useRefreshToken.ts
+        ```ts:hooks/useRefreshToken.ts
         import { reissue } from '../api/NFTeamApi';
         import useLogout from './useLogout';
 
@@ -382,7 +382,7 @@ summary: Local storage에 jwt 보관
 
         `response interceptor`를 통해 액세스 토큰이 만료됐을 경우 앞서 작성한 `useRefreshToken` hook으로 유효한 토큰을 재발급하고, 이를 이전의 만료된 토큰과 바꿔준다. 또한 로컬 스토리지에 있는 만료된 토큰도 교체한다.
         
-        ```ts:/hooks/useApiPrivate.ts
+        ```ts:hooks/useApiPrivate.ts
         import { useEffect } from 'react';
         import useRefreshToken from './useRefreshToken';
         import { api } from '../api/NFTeamApi';
