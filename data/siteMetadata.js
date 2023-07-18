@@ -14,7 +14,7 @@ const siteMetadata = {
   image: '/static/images/avatar.JPEG',
   socialBanner: '/static/images/logo.png',
   email: 'valentink1495@gmail.com',
-  twitter: 'https://twitter.com/NoahHan354580',
+  twitter: 'https://twitter.com/Noah_Han14',
   github: 'https://github.com/Valentin1495',
   instagram: 'https://instagram.com/noah.han14',
   locale: 'en-US',
