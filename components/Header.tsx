@@ -11,7 +11,7 @@ const Header = () => {
     <header className="flex items-center justify-between py-10">
       <div>
         <Link href="/" aria-label={siteMetadata.headerTitle}>
-            <Image src={Logo} alt='Logo' width={70} height={70} className='rounded-lg shadow-lg' />
+            <Image src={Logo} alt="Logo" width={70} height={70} className="rounded-lg shadow-lg" />
         </Link>
       </div>
       <div className="flex items-center text-base leading-5">
