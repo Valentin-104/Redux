@@ -1,0 +1,53 @@
+---
+title: Image Optimization in Next.js
+date: '2023-08-04'
+tags: ['Next.js']
+draft: false
+summary: Next.js 이미지 컴포넌트 최적화 
+---
+
+### Image Optimization
+
+내가 만든 앱의 성능이 궁금해서 lighthouse를 돌려보았다. 그랬더니 더 나은 성능을 위해 이런 제안이 떴다.
+
+![lighthouse audit](/static/images/opportunity.png)
+
+1. 오프스크린 이미지 지연하기(Offscreen Image Lazy Loading)
+
+한국어로는 무슨 말인지 헷갈렸는데 영어로 보니 알 수 있었다. *lazy loading* 은 웹 페이지의 이미지 최적화 기술 중 하나로, 페이지의 성능을 향상시키고 사용자 경험을 개선하기 위해 사용된다. 이 기술은 브라우저가 페이지를 로드할 때 이미지를 즉시 로드하는 대신, 사용자가 스크롤하거나 다른 상호작용을 할 때 이미지를 지연해서 로드하는 방식이다. 이를 통해 초기 페이지 로드 시간을 단축하고 대역폭을 절약할 수 있다. 
+
+Next.js에서는 `Image` 컴포넌트를 쓰면 기본적으로 `img` 요소에 `loading='lazy'` 설정이 되기 때문에, 이 경고는 뜰 일이 없다. 그러나, 개발자 도구를 열어 요소 탭을 보니 이 설정이 없었다. 그 이유는 `priority` 속성을 설정해놓았기 때문이다. 이는 LCP를 향상시키기 위함이다.
+
+**Largest Contentful Paint (LCP)**
+
+Core Web Vitals 중 하나로서, 페이지의 로딩 성능을 측정하는 지표다. 페이지의 뷰포트 내에서 가장 큰 요소가 보이기까지 걸리는 시간을 나타낸다. 이것은 페이지의 주요 영역을 차지하는 큰 텍스트 블록, 비디오 또는 이미지일 수 있다. 이 시간을 낮추기 위해서, LCP 요소인 이미지에 `priority` 속성을 설정하였다. 그러면 *lazy loading* 이 자동으로 비활성화된다.
+
+여기서, 한 가지 간과한 것이 있었다. 처음에 페이지가 로드될 때 뷰포트 내에 있는 이미지들만 LCP 요소이기 때문에, 이들만 `priority` 속성을 설정해야한다는 것이다. 뷰포트 바깥에 있는, 즉 사용자가 스크롤하기 전에 밑에 보이지 않는 이미지들은 이를 설정할 필요가 없다. 이들은 위의 경고처럼 기본값인 *lazy loading* 을 적용하는 게 맞다.
+
+따라서, 이미지들을 mapping할 때 index를 prop으로 주어, index가 9이하인, 즉 뷰포트에 있는 10개의 이미지들만 `priority` 속성을 `true` 로 설정하였다.  
+
+`priority={idx <= 9}`
+
+이렇게 수정하여 다시 lighthouse를 돌려보니, 관련 경고가 사라졌다. 이제 남은 건 하나다.
+
+2. 이미지 크기 적절하게 설정하기(Properly Size Images)
+
+이 경고는 반응형 디자인과 관련된 것으로서, 이미지의 크기를 작은 디바이스에서는 작게, 큰 디바이스에서는 크게 설정하라는 것이다. 실제로 개발자 도구의 네트워크 탭을 열어보니, 모바일 환경에서 필요 이상으로 큰 이미지를 다운로드하였다. 
+
+이를 해결하기 위하여 구글과 유튜브를 검색한 결과, 한 유용한 사이트를 발견하였다. 
+
+> [Linter for Responsive Images](https://ausi.github.io/respimagelint/)
+
+페이지의 이미지를 반응형에 디자인에 맞춘 코드를 제안하는 사이트다. 실제로 내 사이트를 돌려보니, 이런 코드를 제시하였다.
+
+![Linted images](/static/images/linted-images.png)
+
+`Image` 컴포넌트의 `sizes` 속성을 반응형으로 설정하라는 것이다. 이 속성에 대해서 Next.js의 공식 문서를 살펴보았다. 
+
+> A string, similar to a media query, that provides information about how wide the image will be at different breakpoints. The value of `sizes` will greatly affect performance for images using `fill` or which are styled to have a responsive size. 
+>
+> The value of `sizes` is used by the browser to determine which size of the image to download, from `next/image`'s automatically generated `srcset`. 
+
+`Image` 컴포넌트를 사용하면 `srcset`이 자동으로 생성되는데, 이는 미디어 쿼리처럼 브라우저가 각 스크린 사이즈 마다 어떤 사이즈의 이미지를 다운로드할지 결정한다. 이를 설정하는 것이 `sizes` 속성이다.
+
+위 사이트를 통하여 각 스크린 사이즈마다 어느 정도 크기로 다운로드해야하는지를 알아내어, 그대로 적용하였다. 결과는 성공적이었다. 스크린 사이즈에 따라 그에 맞는 크기의 이미지를 다운로드하였고, lighthouse 경고가 모두 사라졌다.
