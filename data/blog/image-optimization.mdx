@@ -26,7 +26,11 @@ Core Web Vitals 중 하나로서, 페이지의 로딩 성능을 측정하는 지
 
 따라서, 이미지들을 mapping할 때 index를 prop으로 주어, index가 9이하인, 즉 뷰포트에 있는 10개의 이미지들만 `priority` 속성을 `true` 로 설정하였다.  
 
-`priority={idx <= 9}`
+```tsx
+<Image
+    priority={idx <= 9}
+/>
+```
 
 이렇게 수정하여 다시 lighthouse를 돌려보니, 관련 경고가 사라졌다. 이제 남은 건 하나다.
 
