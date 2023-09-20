@@ -5,6 +5,18 @@ const projectsData = [
     imgSrc: '/static/images/nft.png',
     href: '/blog/projects/NFT-Trade-Shop',
   },
+  {
+    title: 'Google News',
+    description: `Comprehensive up-to-date news coverage, aggregated by New York Times API`,
+    imgSrc: 'https://www.gstatic.com/images/branding/googlelogo/svg/googlelogo_clr_74x24px.svg',
+    href: '/blog/projects/Google-News',
+  },
+  {
+    title: 'AIWanderlust',
+    description: `AI-Powered Travel Itinerary Planner`,
+    imgSrc: '/static/images/AI.jpg',
+    href: '/blog/projects/AIWanderlust',
+  },
 ]
 
 export default projectsData
