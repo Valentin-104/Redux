@@ -17,6 +17,12 @@ const projectsData = [
     imgSrc: '/static/images/AI.jpg',
     href: '/blog/projects/AIWanderlust',
   },
+  {
+    title: 'Portfolio',
+    description: `My Portfolio`,
+    imgSrc: '/static/images/coding.jpg',
+    href: '/blog/projects/Portfolio',
+  },
 ]
 
 export default projectsData
