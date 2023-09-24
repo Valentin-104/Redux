@@ -26,7 +26,7 @@ placeholder = 'empty' // "empty" | "blur" | "data:image/..."
  1. 속성을 `blur` 로 변경하고, 
  2. 관련된 base64 문자열을 `blurDataURL` 속성값으로 주어야 한다.
 
-이미지 `src` 로부터 base64 문자열을 만드는 것이 핵심인데, 이는 *Plaiceholder* 라는 라이브러리를 통해 구할 수 있다.
+이미지 `src` 로부터 base64 문자열을 만드는 것이 핵심인데, 이는 [Plaiceholder](https://plaiceholder.co/docs/usage#base64) 라는 라이브러리를 통해 구할 수 있다.
 
 ```ts:lib/get-base64.ts
 import { getPlaiceholder } from 'plaiceholder';
@@ -48,6 +48,9 @@ async function getBase64(imageUrl: string) {
     if (e instanceof Error) console.log(e.stack);
   }
 }
+
+// Logs
+// data:image/jpeg;base64,/9j/2wBDAAYEBQY…
 
 export default async function addBlurredDataUrls(
   newsList: News[]
@@ -87,12 +90,12 @@ export default async function Home() {
   
   // 발행된 시간 기준 최신순으로 정렬
   const sortedNewsList = modifiedNewsList.sort((a, b) => {
-  const timestampA = new Date(a.published_date);
-  const timestampB = new Date(b.published_date);
-  
-  if (timestampA < timestampB) return 1;
-  if (timestampA > timestampB) return -1;
-  return 0;
+    const timestampA = new Date(a.published_date);
+    const timestampB = new Date(b.published_date);
+    
+    if (timestampA < timestampB) return 1;
+    if (timestampA > timestampB) return -1;
+    return 0;
   });
 
   return (
@@ -132,11 +135,11 @@ export default async function NewsArticle({
   )
 }
 ```
-- `placeholder=empty`
+- `placeholder='empty'`
 
 ![empty](/static/images/empty.gif)
 
-- `placeholder=blur blurDataURL={blurredDataUrl}`
+- `placeholder='blur' blurDataURL={blurredDataUrl}`
 
 ![blur](/static/images/blur.gif)
 
