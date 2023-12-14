@@ -1,0 +1,79 @@
+---
+title: What Is async/await?
+date: '2023-12-02'
+tags: ['Interview']
+draft: false
+summary: 비동기와 async/await에 대하여
+---
+
+### 비동기 (Asynchronous):
+
+비동기(Asynchronous) 프로그래밍은 어떤 작업이 다른 작업의 완료를 기다리지 않고 실행되는 것을 의미한다. 즉, 여러 작업이 동시에 진행되거나 특정 작업이 완료될 때까지 다른 작업이 계속 진행될 수 있다.
+
+예를 들어, 웹 브라우저에서 비동기적으로 데이터를 불러올 때, 페이지의 나머지 부분은 기다리지 않고 계속 로딩되거나 사용자 입력을 받을 수 있다.
+
+### 비동기 함수:
+
+비동기 함수는 일반적인 동기 함수와 달리, 비동기적으로 동작하는 함수를 말한다. JavaScript에서는 비동기 함수가 주로 콜백 함수, Promise, async/await을 통해 구현된다.
+
+### 콜백 함수 (Callback Functions):
+
+콜백 함수는 다른 함수의 인자로 전달되어 나중에 호출되는 함수다. 비동기적인 작업이 완료되면 콜백 함수가 호출되어 결과를 처리한다. 단점으로는 콜백 지옥(Callback Hell)이 발생할 수 있어 코드가 복잡해지는 문제가 있다.
+
+```javascript
+function fetchData(callback) {
+  setTimeout(() => {
+    console.log("Data Fetched!");
+    callback();
+  }, 1000);
+}
+
+fetchData(() => {
+  console.log("Callback Function Called!");
+});
+```
+
+### Promise:
+
+Promise는 비동기적인 작업의 최종 결과를 나타내는 객체다. 성공 또는 실패와 같은 상태를 가진다.
+
+```javascript
+function fetchData() {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      console.log("Data Fetched!");
+      resolve();
+    }, 1000);
+  });
+}
+
+fetchData().then(() => {
+  console.log("Promise Resolved!");
+}).catch(() => {
+  console.error("Promise Rejected!");
+});
+```
+
+### async/await:
+
+`async` 키워드는 함수가 항상 Promise를 반환하도록 만든다. `await` 키워드는 Promise가 처리될 때까지 기다리며, 함수의 실행을 일시 중지한다.
+
+```javascript
+async function fetchData() {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      console.log("Data Fetched!");
+      resolve();
+    }, 1000);
+  });
+}
+
+async function fetchDataAndPrint() {
+  await fetchData();
+  console.log("Async/Await Done!");
+}
+
+fetchDataAndPrint();
+```
+
+`async/await`를 사용하면 비동기 코드를 동기적으로 작성할 수 있어 가독성이 향상되며, 콜백 지옥을 피할 수 있다.
