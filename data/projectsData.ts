@@ -6,10 +6,10 @@ const projectsData = [
     href: '/blog/projects/NFT-Trade-Shop',
   },
   {
-    title: 'Google News',
+    title: 'NYTimes',
     description: `Comprehensive up-to-date news coverage, aggregated by New York Times API`,
-    imgSrc: 'https://www.gstatic.com/images/branding/googlelogo/svg/googlelogo_clr_74x24px.svg',
-    href: '/blog/projects/Google-News',
+    imgSrc: '/static/images/new-york-times.jpg',
+    href: '/blog/projects/NYTimes',
   },
   {
     title: 'AIWanderlust',
