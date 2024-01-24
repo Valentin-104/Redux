@@ -1,0 +1,87 @@
+---
+title: Function Component vs Class Component
+date: '2023-12-15'
+tags: ['React', 'Interview']
+draft: false
+summary: 함수형 컴포넌트와 클래스형 컴포넌트의 차이
+---
+
+React에서는 두 가지 타입의 컴포넌트를 만들 수 있다. 클래스형 컴포넌트와 함수형 컴포넌트. 최근 몇 년 동안 함수형 컴포넌트가 많이 사용되고 있으며, Hooks의 도입으로 함수형 컴포넌트에서 상태(state)와 생명주기(Lifecycle) 기능을 사용할 수 있게 되었다.
+
+### 1. 클래스형 컴포넌트
+
+```jsx
+import React, { Component } from 'react';
+
+class MyClassComponent extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      count: 0
+    };
+  }
+
+  componentDidMount() {
+    // 컴포넌트가 마운트될 때 실행되는 코드
+  }
+
+  componentDidUpdate() {
+    // 컴포넌트가 업데이트될 때 실행되는 코드
+  }
+
+  componentWillUnmount() {
+    // 컴포넌트가 언마운트될 때 실행되는 코드
+  }
+
+  render() {
+    return (
+      <div>
+        <p>{this.state.count}</p>
+        <button onClick={() => this.setState({ count: this.state.count + 1 })}>
+          Increment
+        </button>
+      </div>
+    );
+  }
+}
+```
+
+### 2. 함수형 컴포넌트
+
+```jsx
+import React, { useState, useEffect } from 'react';
+
+function MyFunctionalComponent() {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    // 컴포넌트가 마운트되거나 업데이트될 때 실행되는 코드
+    return () => {
+      // 컴포넌트가 언마운트될 때 실행되는 코드
+    };
+  }, [count]); // count가 변경될 때만 실행
+
+  return (
+    <div>
+      <p>{count}</p>
+      <button onClick={() => setCount(count + 1)}>
+        Increment
+      </button>
+    </div>
+  );
+}
+```
+
+### 주요 차이점
+
+1. **문법**
+   - 클래스형 컴포넌트는 클래스를 사용하여 정의되며, `render` 메서드를 통해 UI를 반환한다.
+   - 함수형 컴포넌트는 함수로 정의되며, `return`을 통해 UI를 반환한다.
+
+2. **상태(State)와 생명주기(Lifecycle)**
+   - 클래스형 컴포넌트는 `this.state` 및 생명주기 메서드(`componentDidMount`, `componentDidUpdate`, `componentWillUnmount` 등)를 사용하여 상태를 관리하고 부수 효과를 처리한다(생명주기를 다룬다).
+   - 함수형 컴포넌트에서는 `useState` 훅을 사용하여 상태를 관리하고, `useEffect` 훅을 사용하여 부수 효과를 처리한다(생명주기를 다룬다).
+
+3. **성능 및 최적화**
+        
+    최신 React 버전에서는 함수형 컴포넌트와 훅을 사용하는 것이 클래스형 컴포넌트보다 성능적으로 효율적입니다. 함수형 컴포넌트는 더 작고 간결하며, 코드를 최적화하기 쉽고 메모이제이션과 같은 최적화 기법을 적용하기 용이합니다.
