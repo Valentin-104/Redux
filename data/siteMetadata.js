@@ -2,7 +2,7 @@
 
 /** @type {import("pliny/config").PlinyConfig } */
 const siteMetadata = {
-  title: "Noah",
+  title: 'Noah',
   author: '노아',
   headerTitle: 'Noah',
   description: 'I love building for the web. From something as simple as a single HTML file – all the way to large Next.js applications.',
