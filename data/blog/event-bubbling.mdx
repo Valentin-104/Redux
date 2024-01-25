@@ -1,0 +1,45 @@
+---
+title: Event Bubbling
+date: '2023-12-17'
+tags: ['JavaScript', 'Interview']
+draft: false
+summary: 이벤트 버블링과 이벤트 위임
+---
+
+이벤트 버블링(Event Bubbling)은 DOM(Documet Object Model) 이벤트 처리의 한 방식으로, 이벤트가 발생한 가장 깊은 요소부터 시작하여 상위 요소로 전파되는 현상을 말한다. 즉, 특정 요소에서 이벤트가 발생하면, 그 이벤트는 해당 요소의 조상 요소들을 따라 상위로 올라가면서 각각의 요소에 할당된 이벤트 핸들러를 차례로 실행한다.
+
+### 예시
+
+```html
+<!DOCTYPE html>
+<html>
+<body>
+
+<div onclick="console.log('div clicked')">
+  <button onclick="console.log('button clicked')">Click Me!</button>
+</div>
+
+</body>
+</html>
+```
+
+위 예시에서 버튼을 클릭하면, 먼저 `button` 요소에 대한 이벤트 핸들러가 실행되고(`console.log('button clicked')`), 이후 이벤트가 `div` 요소로 버블링되어 `div` 요소의 이벤트 핸들러가 실행된다(`console.log('div clicked')`).
+
+### 이벤트 버블링의 중요성
+
+  **이벤트 위임**
+
+  이벤트 버블링을 활용하면, 여러 자식 요소에 개별적으로 이벤트 리스너를 붙이는 대신, 공통의 부모 요소에 하나의 이벤트 리스너를 붙여서 관리할 수 있다. 이를 이벤트 위임이라고 한다.
+
+### 이벤트 버블링 중단
+
+    때로는 이벤트 버블링이 원치 않은 결과를 초래할 수 있다. 이때는 이벤트 객체의 `stopPropagation()` 메서드를 사용하여 버블링을 중단할 수 있다.
+
+    ```javascript
+    button.addEventListener('click', function(event) {
+      console.log('button clicked');
+      event.stopPropagation(); // 이벤트 버블링 중단
+    });
+    ```
+
+이벤트 버블링은 웹 페이지에서 다양한 이벤트 처리를 효율적으로 관리할 수 있게 해주는 중요한 개념이다. 그러나 때로는 예상치 못한 동작을 일으킬 수도 있으므로, 이를 적절하게 이해하고 활용하는 것이 중요하다.
