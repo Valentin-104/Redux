@@ -1,0 +1,189 @@
+---
+title: Building Multiturn Conversations (Chat) Using Gemni API
+date: '2023-12-23'
+tags: ['JavaScript', 'React', 'Next.js']
+draft: false
+summary: Gemini를 API를 활용하여 멀티턴 대화 만들기 (채팅)
+---
+
+[Gemini](https://ai.google.dev) API를 사용하면 Google의 최신 생성형 AI 모델에 액세스할 수 있다. 이를 통해 ChatGPT 같은 챗봇을 만들고자 하였다. 링크로 들어가서 튜토리얼을 살펴보고 진행했다.
+
+1. 먼저 API 키를 받아 `.env.local` 파일에 적는다.
+
+2. `lib` 폴더 안에 `utils.ts` 파일을 만들고, 생성 모델을 초기화하는 함수를 작성한다.
+
+    ```ts:lib/utils.ts
+    export function startChat() {
+      const genAI = new GoogleGenerativeAI(
+        process.env.NEXT_PUBLIC_GEMINI_API_KEY as string // 타입 에러를 해결하기 위한 type assertion
+      );
+      const model = genAI.getGenerativeModel({ model: 'gemini-pro' }); // gemini-pro 모델 사용
+
+      const chat = model.startChat({
+        generationConfig: {
+          maxOutputTokens: 2048, 
+          // Max output token(최대 출력 토큰): 응답에서 생성할 수 있는 최대 토큰 수를 지정. 토큰 1개는 약 4자(영문 기준). 100개 토큰은 약 60~80개 단어에 해당
+        },
+      });
+
+      return chat;
+    }
+    ```
+
+3. API 문서에 있는 [샘플 앱](https://github.com/google/generative-ai-js/tree/main/samples/web)을 참고하여, 응답을 받아서 채팅 기록 상태를 업데이트하는 함수를 만든다.
+    - 기본적으로 모델은 전체 생성 프로세스를 완료한 후 응답을 반환한다. 전체 결과를 기다리지 않고 스트리밍을 사용하여 부분 결과를 처리하면 상호작용을 더 빠르게 달성할 수 있다.
+    
+    ```ts:lib/utils.ts
+    export async function updateUI({
+      setModelParts,
+      chatHistory,
+      setChatHistory,
+      getResult,
+      streaming,
+    }: chatParams) {
+      try {
+        const result = await getResult();
+    
+        // 스트리밍을 사용해 더 빠르게 상호작용
+        if (streaming) {
+          for await (const chunk of result.stream) {
+            // Get first candidate's current text chunk 텍스트 조각을 받음
+            const chunkText = chunk.text();
+
+            setModelParts((prev) => {
+              // Find the index of the last modelMsg in chatHistory 채팅 기록 중 마지막 모델 메시지의 인덱스를 찾음
+              const lastIndex = chatHistory.findLastIndex(
+                (msg) => msg.role === 'model'
+              );
+
+              if (lastIndex !== -1) {
+                // If found, create a new array with the modified parts property 마지막 모델 메시지의 원래 텍스트에 응답으로 받은 텍스트 조각을 추가
+                const updatedChatHistory = [...chatHistory];
+                updatedChatHistory[lastIndex] = {
+                  role: 'model',
+                  parts: prev + chunkText,
+                };
+
+                // Update the state with the modified chatHistory 채팅 기록 상태 업데이트
+                setChatHistory(updatedChatHistory);
+              }
+
+              return prev + chunkText; // Update the state with the modified value 모델 메시지 상태 업데이트
+            });
+          }
+        } 
+        // 스트리밍을 사용하지 않고, 응답을 한 번에 다 받아서 모델 메시지 상태 업데이트 
+        else {
+          const response = await result.response;
+
+          setModelParts(response.text());
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    }
+    ```
+
+4. `form`의 `submit` 이벤트 핸들러인 `handleSubmit`에서 함수 `startChat`, `updateUI`를 실행한다.
+
+    ```tsx:components/chat.tsx
+    'use client';
+    
+    import { FormEvent, useState } from 'react';
+    import { startChat, updateUI } from '@/lib/utils';
+    import { toast } from 'sonner';
+    import { Send } from 'lucide-react';
+    import { Button } from './ui/button';
+    import { Msg } from '@/lib/types';
+    import TextareaAutosize from 'react-textarea-autosize';
+    import Loader from './loader';
+    import { ButtonScrollToBottom } from './button-scroll-to-bottom';
+    import EmptyScreen from './empty-screen';
+    import ChatList from './chat-list';
+    import ChatScrollAnchor from './chat-scroll-anchor';
+    
+    export default function Chat() {  
+      const [userParts, setUserParts] = useState<string>('');
+      const [modelParts, setModelParts] = useState<string>('');
+      const [chatHistory, setChatHistory] = useState<Msg[]>([]);
+      const [pending, setPending] = useState<boolean>(false);
+    
+      const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        if (!userParts.trim()) {
+          return;
+        }
+        setUserParts('');
+        setPending(true);
+    
+        const userMsg = {
+          role: 'user',
+          parts: userParts,
+        };
+        const modelMsg = {
+          role: 'model',
+          parts: modelParts,
+        };
+    
+        const updatedChatHistory = [...chatHistory, userMsg, modelMsg];
+        setChatHistory(updatedChatHistory);
+    
+        const chat = startChat();
+        await updateUI({
+          chatHistory: updatedChatHistory,
+          setChatHistory,
+          setModelParts,
+          getResult: () => chat.sendMessageStream(userParts),
+          streaming: true,
+        });
+    
+        setPending(false);
+        setModelParts('');
+        toast('🥳 Gemini responded!');
+      };
+    
+      return (
+        <div className='flex flex-col justify-between min-h-screen pt-20'>
+          {chatHistory.length ? (
+            <>
+              <ChatList
+                chatHistory={chatHistory}
+                pending={pending}
+                profilePic={profilePic}
+              />
+              <ChatScrollAnchor />
+            </>
+          ) : (
+            <EmptyScreen setUserParts={setUserParts} />
+          )}
+    
+          <form onSubmit={handleSubmit} className='sticky bottom-0 mt-24'>
+            <section className='relative bg-background h-4'>
+              <ButtonScrollToBottom />
+              <TextareaAutosize
+                rows={1}
+                className='absolute bottom-3 w-full resize-none bg-secondary placeholder:text-primary/50 text-primary min-h-fit max-h-48 focus-within:outline-none pl-6 py-5 pr-16 rounded-lg'
+                placeholder='Message Gemini...'
+                autoFocus
+                value={userParts}
+                onChange={(e) => setUserParts(e.target.value)}
+              />
+    
+              <Button
+                type='submit'
+                size='icon'
+                className='absolute right-6 bottom-[26px]'
+                disabled={pending || !userParts.trim()}
+              >
+                {pending ? (
+                  <Loader className='w-6 h-6 border-secondary/50 border-t-secondary' />
+                ) : (
+                  <Send className='w-6 h-6' />
+                )}
+              </Button>
+            </section>
+          </form>
+        </div>
+      );
+    }
+    ```
