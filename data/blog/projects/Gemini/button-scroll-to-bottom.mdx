@@ -1,0 +1,50 @@
+---
+title: Button Scroll to Bottom
+date: '2023-12-31'
+tags: ['JavaScript', 'React', 'Gemini', 'window', 'project']
+draft: false
+summary: 페이지 최하단으로 스크롤하는 버튼
+---
+
+사용자가 버튼을 클릭했을 때 페이지의 맨 아래로 스크롤하도록 하고 싶었다. `useAtBottom` 훅을 이용해 스크롤바가 페이지 최하단에서 100이상 떨어질 경우를 감지하고, 이 때에만 버튼이 보이도록 하였다.
+
+```tsx:components/button-scroll-to-bottom.tsx
+'use client';
+
+import { cn } from '@/lib/utils';
+import { useAtBottom } from '@/lib/hooks/use-at-bottom';
+import { Button, type ButtonProps } from '@/components/ui/button';
+import { ArrowDown } from 'lucide-react';
+
+export function ButtonScrollToBottom({ className, ...props }: ButtonProps) {
+  const isAtBottom = useAtBottom(100); // 페이지가 맨 아래에서 100픽셀 범위 안에 있는지에 대한 상태
+
+  return (
+    <Button
+      type='button'
+      variant='ghost'
+      size='icon'
+      className={cn(
+        'absolute bottom-20 -translate-x-1/2 left-1/2 z-10 bg-foreground/20 hover:bg-foreground/20 rounded-full',
+        isAtBottom ? 'opacity-0 pointer-events-none' : 'opacity-100', // isAtBottom의 값에 따라 투명도와 포인터 이벤트 속성 조절
+        className
+      )}
+      onClick={() =>
+        window.scrollTo({
+          top: document.body.offsetHeight,
+          behavior: 'smooth',
+        })
+      }
+      {...props}
+    >
+      <ArrowDown className='w-6 h-6' />
+      <span className='sr-only'>Scroll to bottom</span>
+    </Button>
+  );
+}
+```
+  
+  `onClick` **이벤트 핸들러**
+  - `window.scrollTo` 함수는 브라우저의 창 또는 화면을 특정 위치로 스크롤하는 데 사용된다. 이 함수는 여러 옵션을 가질 수 있는데, 여기서는 다음 두 가지 옵션을 사용했다:
+    - `top`: 스크롤할 위치 지정. 여기서 `document.body.offsetHeight`를 사용하면 이는 문서의 전체 높이를 나타내므로, 이 값은 페이지의 맨 아래로 스크롤하도록 함.
+    - `behavior`: 스크롤 동작 방식 지정. `smooth`를 사용하면 부드러운 스크롤 효과 적용.
