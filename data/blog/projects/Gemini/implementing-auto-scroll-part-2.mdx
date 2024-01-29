@@ -1,0 +1,84 @@
+---
+title: Implementing Auto Scroll - Part.2 Intersection Observer
+date: '2023-12-29'
+tags: ['JavaScript', 'React', 'Gemini', 'Intersection Observer', 'window', 'project', 'custom hook']
+draft: false
+summary: 자동 스크롤 - Part.2 Intersection Observer
+---
+
+- `ChatScrollAnchor` 컴포넌트는 2가지 기능을 수행한다.
+
+  1. 이전에 만든 `useAtBottom` 커스텀 훅을 사용하여 페이지의 하단에 도달했는지 감지하고, 
+  2. `useInView` 훅을 사용하여 특정 요소의 가시성을 감지하고, 자동으로 스크롤한다.
+
+  ```tsx:components/chat-scroll-anchor.tsx
+  'use client';
+  
+  import { useInView } from 'react-intersection-observer';
+  import { useAtBottom } from '@/lib/hooks/use-at-bottom';
+  import { useEffect } from 'react';
+  
+  export default function ChatScrollAnchor() {
+    const isAtBottom = useAtBottom();
+    const { ref, entry, inView } = useInView({
+      trackVisibility: true,
+      delay: 100,
+      rootMargin: '0px 0px -112px 0px',
+    });
+  
+    useEffect(() => {
+      if (isAtBottom && !inView) {  
+        entry?.target.scrollIntoView({
+          block: 'start',
+        });
+        // entry의 target 요소가 화면에 보이도록 스크롤. block: 'start'는 요소를 화면의 상단으로 스크롤
+      }
+      // 사용자가 페이지 맨 밑에 도달했으나 감지된 요소가 보이지 않을 때 해당 요소를 화면에 보이도록 스크롤
+    }, [inView, entry, isAtBottom]);
+  
+    return <div ref={ref} className='h-px w-full' />; // 컴포넌트는 ref가 적용된 높이 1픽셀, 너비가 전체를 차지하는 div 요소를 반환. 이 div는 useInView 훅에서 감지 대상이 됨
+  }  
+  ```
+
+  `useInView`
+  - [react-intersection-observer](https://github.com/thebuilder/react-intersection-observer) 라이브러리에서 제공하는 훅으로서, 특정 요소가 화면에 보이는지 여부를 감지.
+  - `trackVisibility`: 요소의 가시성을 추적할지 여부를 설정.
+  - `delay`: 가시성 확인을 위한 지연 시간.
+  - `rootMargin`: 가시성 판단 기준을 위한 마진을 설정. 여기서는 하단에 -112px의 마진을 설정하여 요소가 화면 하단에서 112픽셀 위에 있을 때까지 기다림.
+
+- `ChatScrollAnchor` 컴포넌트를 `ChatList` 컴포넌트 밑에 두어, 최신 메시지가 생성되면서 자동으로 스크롤하여 사용자가 이를 볼 수 있게 하였다.
+
+  ```tsx:components/chat.tsx
+  'use client';
+  
+  import { useState } from 'react';
+  import { useSession } from 'next-auth/react';
+  import { Msg } from '@/lib/types';
+  import EmptyScreen from './empty-screen';
+  import ChatList from './chat-list';
+  import ChatScrollAnchor from './chat-scroll-anchor';
+  
+  export default function Chat() {
+    const { data: session } = useSession();
+    const [chatHistory, setChatHistory] = useState<Msg[]>([]);
+    const [pending, setPending] = useState<boolean>(false);
+    const profilePic = session?.user?.image as string;
+  
+    return (
+      <div className='flex flex-col justify-between min-h-screen pt-20'>
+        {chatHistory.length ? (
+          <>
+            <ChatList
+              chatHistory={chatHistory}
+              pending={pending}
+              profilePic={profilePic}
+            />
+            <ChatScrollAnchor />
+          </>
+        ) : (
+          <EmptyScreen setUserParts={setUserParts} />
+        )}
+      </div>
+    );
+  }
+  ```

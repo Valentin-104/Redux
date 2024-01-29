@@ -3,45 +3,45 @@ title: Implementing Auto Scroll - Part.1 Custom Hook
 date: '2023-12-27'
 tags: ['JavaScript', 'React', 'Gemini', 'Intersection Observer', 'window', 'project', 'custom hook']
 draft: false
-summary: Intersection Observer를 활용한 자동 스크롤 - Part.1 커스텀 훅
+summary: 자동 스크롤 - Part.1 커스텀 훅
 ---
 
 - 페이지가 맨 밑에 있을 때는, 모델 메시지가 추가되면서 자동으로 따라 내려가게 만들고 싶었다. Vercel팀의 [AI Chatbot](https://github.com/vercel/ai-chatbot)을 참고하여 이 기능을 구현하였다.
 
 - 먼저 맨 밑에 있는 지 아닌 지를 알아야 하기 때문에, 이를 판별하는 **custom hook**을 만들었다. `lib` 폴더 안에 `hooks` 폴더를 만들어서 진행했다.
   
-     ```ts:lib/hooks/use-at-bottom.ts
-     import { useEffect, useState } from 'react';
-     
-     export function useAtBottom(offset = 0) {
-       const [isAtBottom, setIsAtBottom] = useState(false);
-     
-       useEffect(() => {
-         const handleScroll = () => {
-           setIsAtBottom(
-             window.innerHeight + window.scrollY >=
-               document.body.offsetHeight - offset
-           );
-         };
-         
-         window.addEventListener('scroll', handleScroll, { passive: true });
-         handleScroll();
-         // scroll 이벤트에 handleScroll 함수를 연결. 이를 통해 사용자가 스크롤할 때마다 handleScroll 함수가 호출되어 현재 스크롤 위치를 체크
-         // { passive: true }는 이벤트 리스너가 preventDefault를 호출하지 않음을 나타내어 성능을 개선하는 데 도움
-     
-         return () => {
-           window.removeEventListener('scroll', handleScroll);
-         };
-         // 컴포넌트가 언마운트될 때 window.removeEventListener가 호출되어 스크롤 이벤트 리스너를 제거
-       }, [offset]);
-     
-       return isAtBottom;
-     }
-     ```
+    ```ts:lib/hooks/use-at-bottom.ts
+    import { useEffect, useState } from 'react';
+    
+    export function useAtBottom(offset = 0) {
+      const [isAtBottom, setIsAtBottom] = useState(false);
+    
+      useEffect(() => {
+        const handleScroll = () => {
+          setIsAtBottom(
+            window.innerHeight + window.scrollY >=
+              document.body.offsetHeight - offset
+          );
+        };
+        
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        handleScroll();
+        // scroll 이벤트에 handleScroll 함수를 연결. 이를 통해 사용자가 스크롤할 때마다 handleScroll 함수가 호출되어 현재 스크롤 위치를 체크
+        // { passive: true }는 이벤트 리스너가 preventDefault를 호출하지 않음을 나타내어 성능을 개선하는 데 도움
+    
+        return () => {
+          window.removeEventListener('scroll', handleScroll);
+        };
+        // 컴포넌트가 언마운트될 때 window.removeEventListener가 호출되어 스크롤 이벤트 리스너를 제거
+      }, [offset]);
+    
+      return isAtBottom;
+    }
+    ```
 
-- **handleScroll 함수**
-  - 이 함수는 사용자의 스크롤 위치를 체크하여 isAtBottom 상태를 업데이트한다.
-  - window.innerHeight는 브라우저 윈도우의 내부 높이(즉, 보이는 부분의 높이)를 나타낸다.
-  - window.scrollY는 문서가 수직으로 얼마나 스크롤 되었는지를 픽셀 단위로 나타낸다.
-  - document.body.offsetHeight는 문서 전체의 높이를 나타낸다.
-  - offset은 선택적으로 추가할 수 있는 여분의 여백 값을 의미한다. 이 값에 따라 사용자가 실제로 페이지 맨 밑에 도달하기 전에 isAtBottom이 true로 설정될 수 있다.
+    `handleScroll` 함수
+    - 이 함수는 사용자의 스크롤 위치를 체크하여 `isAtBottom` 상태를 업데이트.
+    - `window.innerHeight`: 브라우저 윈도우의 내부 높이(즉, 보이는 부분의 높이).
+    - `window.scrollY`: 문서가 수직으로 얼마나 스크롤 되었는지를 픽셀 단위로 나타냄.
+    - `document.body.offsetHeight`: 문서 전체의 높이.
+    - `offset`: 선택적으로 추가할 수 있는 여분의 여백 값. 이 값에 따라 사용자가 실제로 페이지 맨 밑에 도달하기 전에 `isAtBottom`이 `true`로 설정될 수 있음.
