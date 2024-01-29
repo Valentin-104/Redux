@@ -6,7 +6,7 @@ draft: false
 summary: Gemini를 API를 활용하여 멀티턴 대화 만들기 (채팅)
 ---
 
-[Gemini](https://ai.google.dev) API를 사용하면 Google의 최신 생성형 AI 모델에 액세스할 수 있다. 이를 통해 ChatGPT 같은 챗봇을 만들고자 하였다. 링크로 들어가서 튜토리얼을 살펴보고 진행했다.
+[Gemini](https://ai.google.dev) API를 사용하면 **Google**의 최신 생성형 AI 모델에 액세스할 수 있다. 이를 통해 *ChatGPT*같은 챗봇을 만들고자 하였다. 링크로 들어가서 튜토리얼을 살펴보고 진행했다.
 
 1. 먼저 API 키를 받아 `.env.local` 파일에 적는다.
 
@@ -31,7 +31,6 @@ summary: Gemini를 API를 활용하여 멀티턴 대화 만들기 (채팅)
     ```
 
 3. API 문서에 있는 [샘플 앱](https://github.com/google/generative-ai-js/tree/main/samples/web)을 참고하여, 응답을 받아서 채팅 기록 상태를 업데이트하는 함수를 만든다.
-    - 기본적으로 모델은 전체 생성 프로세스를 완료한 후 응답을 반환한다. 전체 결과를 기다리지 않고 스트리밍을 사용하여 부분 결과를 처리하면 상호작용을 더 빠르게 달성할 수 있다.
     
     ```ts:lib/utils.ts
     export async function updateUI({
@@ -46,31 +45,7 @@ summary: Gemini를 API를 활용하여 멀티턴 대화 만들기 (채팅)
     
         // 스트리밍을 사용해 더 빠르게 상호작용
         if (streaming) {
-          for await (const chunk of result.stream) {
-            // Get first candidate's current text chunk 텍스트 조각을 받음
-            const chunkText = chunk.text();
-
-            setModelParts((prev) => {
-              // Find the index of the last modelMsg in chatHistory 채팅 기록 중 마지막 모델 메시지의 인덱스를 찾음
-              const lastIndex = chatHistory.findLastIndex(
-                (msg) => msg.role === 'model'
-              );
-
-              if (lastIndex !== -1) {
-                // If found, create a new array with the modified parts property 마지막 모델 메시지의 원래 텍스트에 응답으로 받은 텍스트 조각을 추가
-                const updatedChatHistory = [...chatHistory];
-                updatedChatHistory[lastIndex] = {
-                  role: 'model',
-                  parts: prev + chunkText,
-                };
-
-                // Update the state with the modified chatHistory 채팅 기록 상태 업데이트
-                setChatHistory(updatedChatHistory);
-              }
-
-              return prev + chunkText; // Update the state with the modified value 모델 메시지 상태 업데이트
-            });
-          }
+          // to do later...
         } 
         // 스트리밍을 사용하지 않고, 응답을 한 번에 다 받아서 모델 메시지 상태 업데이트 
         else {
@@ -134,7 +109,7 @@ summary: Gemini를 API를 활용하여 멀티턴 대화 만들기 (채팅)
           setChatHistory,
           setModelParts,
           getResult: () => chat.sendMessageStream(userParts),
-          streaming: true,
+          streaming: false, // 스트리밍을 사용할 시 true
         });
     
         setPending(false);

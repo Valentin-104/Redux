@@ -1,0 +1,63 @@
+---
+title: Using Streaming for Faster Interactions
+date: '2023-12-25'
+tags: ['JavaScript', 'React', 'Next.js']
+draft: false
+summary: 스트리밍을 사용해 더 빠르게 상호작용하여 UX 향상
+---
+
+- 기본적으로 모델은 전체 생성 프로세스를 완료한 후 응답을 반환한다. 그러나 *ChatGPT* 같은 챗봇을 사용해보면, 데이터가 들어오는 대로 빠르게 사용자에게 보여준다. 
+즉, 전체 결과를 기다리지 않고 **스트리밍**을 사용하여 부분 결과를 처리한다. 이는 **UX**를 크게 향상시킨다. 
+
+- **Google**이 만든 [샘플 앱](https://github.com/google/generative-ai-js/tree/main/samples/web)에서는 순수 자바스크립트로 구현해놓았다. 나는 React로 리팩토링하였다.
+
+    ```ts:lib/utils.ts
+    export async function updateUI({
+      setModelParts,
+      chatHistory,
+      setChatHistory,
+      getResult,
+      streaming,
+    }: chatParams) {
+      try {
+        const result = await getResult();
+    
+        // 스트리밍을 사용해 더 빠르게 상호작용
+        if (streaming) {
+          for await (const chunk of result.stream) {
+            // Get first candidate's current text chunk 텍스트 조각을 받음
+            const chunkText = chunk.text();
+
+            setModelParts((prev) => {
+              // Find the index of the last modelMsg in chatHistory 채팅 기록 중 마지막 모델 메시지의 인덱스를 찾음
+              const lastIndex = chatHistory.findLastIndex(
+                (msg) => msg.role === 'model'
+              );
+
+              if (lastIndex !== -1) {
+                // If found, create a new array with the modified parts property 마지막 모델 메시지의 원래 텍스트에 응답으로 받은 텍스트 조각을 추가
+                const updatedChatHistory = [...chatHistory];
+                updatedChatHistory[lastIndex] = {
+                  role: 'model',
+                  parts: prev + chunkText,
+                };
+
+                // Update the state with the modified chatHistory 채팅 기록 상태 업데이트
+                setChatHistory(updatedChatHistory);
+              }
+
+              return prev + chunkText; // Update the state with the modified value 모델 메시지 상태 업데이트
+            });
+          }
+        } 
+        // 스트리밍을 사용하지 않고, 응답을 한 번에 다 받아서 모델 메시지 상태 업데이트 
+        else {
+          const response = await result.response;
+
+          setModelParts(response.text());
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    }
+    ```
