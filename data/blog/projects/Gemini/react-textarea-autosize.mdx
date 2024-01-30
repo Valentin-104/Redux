@@ -6,7 +6,7 @@ draft: false
 summary: 라이브러리를 활용한 textarea 요소 높이 변경
 ---
 
-처음에는 채팅 입력 창을 `textarea` 요소로 하고, `rows` 속성을 1로 설정하였다. 이렇게 하니 2번째 줄로 넘어가면 `textarea` 의 높이가 같이 늘어나야하는데, 고정된 채로 스크롤 바가 생겼다. vercel팀의 코드를 살펴보니 [react-textarea-autosize](https://github.com/Andarist/react-textarea-autosize)라는 라이브러리를 사용하였고, 이를 통해 문제를 해결할 수 있었다.
+처음에는 채팅 입력 창을 `textarea` 요소로 하고, `rows` 속성을 1로 설정하였다. 이렇게 하니 2번째 줄로 넘어가면 `textarea` 의 높이가 같이 늘어나야하는데, 고정된 채로 스크롤 바가 생겼다. [Vrcel팀의 코드](https://github.com/vercel/ai-chatbot)를 살펴보니 [react-textarea-autosize](https://github.com/Andarist/react-textarea-autosize)라는 라이브러리를 사용하였고, 이를 통해 문제를 해결할 수 있었다.
 
 이 라이브러리에서 제공하는 `<TextareaAutosize />` 라는 컴포넌트를 사용하면 된다.
 

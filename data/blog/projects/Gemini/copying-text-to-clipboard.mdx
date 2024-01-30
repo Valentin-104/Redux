@@ -1,0 +1,85 @@
+---
+title: Copying Text to Clipboard
+date: '2024-01-04'
+tags: ['Gemini', 'project', 'React', 'custom hook', 'JavaScript', 'window']
+draft: false
+summary: 텍스트 복사 버튼
+---
+
+- 버튼을 클릭하면 모델의 메시지를 복사할 수 있는 기능을 만들고자 하였다. [AI Chatbot](https://github.com/vercel/ai-chatbot) 코드를 참고하여, **커스텀 훅**을 만들어 해결했다.
+
+  ```ts:lib/hooks/use-copy-to-clipboard.ts
+  'use client';
+  
+  import { useState } from 'react';
+  
+  export interface useCopyToClipboardProps {
+    timeout?: number;
+  }
+  
+  export function useCopyToClipboard({
+    timeout = 2000, // timeout은 클립보드에 복사된 후 얼마나 오래 isCopied 상태를 true로 유지할지 결정
+  }: useCopyToClipboardProps) {
+    // useState를 사용하여 isCopied라는 상태를 관리. 이 상태는 클립보드에 텍스트가 복사되었는지의 여부를 나타냄
+    const [isCopied, setIsCopied] = useState<Boolean>(false); 
+  
+    const copyToClipboard = (value: string) => {
+      // 클립보드 기능이 사용 가능한지와 value가 비어있지 않은지 확인
+      if (typeof window === 'undefined' || !navigator.clipboard?.writeText) {
+        return;
+      }
+      if (!value) {
+        return;
+      }
+      
+      //  텍스트를 클립보드에 복사. 복사가 성공하면 setIsCopied(true)를 호출하여 isCopied 상태를 true로 설정
+      navigator.clipboard.writeText(value).then(() => {
+        setIsCopied(true);
+      
+      // setTimeout을 사용하여 설정된 timeout 시간이 지나면 isCopied를 다시 false로 설정
+      // 이는 사용자에게 복사가 성공적으로 이루어졌음을 일정 시간 동안만 알려주기 위함
+        setTimeout(() => {
+          setIsCopied(false);
+        }, timeout); 
+      });
+    };
+  
+    // isCopied 상태와 copyToClipboard 함수를 객체로 반환
+    return { isCopied, copyToClipboard }; 
+  }
+  ```
+
+- `useCopyToClipboard` 훅을 사용한 복사 버튼. 이 버튼에 복사하고자 하는 메시지를 `prop`으로 전달하면 된다.
+
+  ```tsx:components/copy-button.tsx
+  'use client';
+
+  import { Button } from '@/components/ui/button';
+  import { useCopyToClipboard } from '@/lib/hooks/use-copy-to-clipboard';
+  import { Check, Copy } from 'lucide-react';
+  
+  type CopyButtonProps = {
+    message: string;
+  };
+  
+  export default function CopyButton({ message }: CopyButtonProps) {
+    const { isCopied, copyToClipboard } = useCopyToClipboard({ timeout: 2000 });
+  
+    const copyMessage = () => {
+      if (isCopied) return;
+      copyToClipboard(message);
+    };
+  
+    return (
+      <Button
+        variant='ghost'
+        size='icon'
+        onClick={copyMessage}
+        className='group-hover:opacity-100 opacity-0 transition-opacity'
+      >
+        {isCopied ? <Check className='w-6 h-6' /> : <Copy className='w-4 h-4' />}
+        <span className='sr-only'>Copy message</span>
+      </Button>
+    );
+  }
+  ```
