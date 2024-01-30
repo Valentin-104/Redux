@@ -1,0 +1,68 @@
+---
+title: Using Fonts in Next.js
+date: '2024-01-02'
+tags: ['Gemini', 'Next.js', 'project', 'Tailwind CSS']
+draft: false
+summary: 폰트 사용 in Next.js
+---
+
+사용자와 모델의 메시지 부분은 다른 폰트를 사용하고 싶었다. [Google Fonts](https://fonts.google.com/)를 둘러보고, `quicksand`가 마음에 들었다.
+이 폰트를 추가하기 위해 [Next.js 문서](https://nextjs.org/docs/app/building-your-application/optimizing/fonts#with-tailwind-css)를 살펴보았다.
+
+1. 폰트를 로드할 때 `variable` 옵션을 사용하여 CSS 변수 이름을 정의하고, 이를 `quicksand`에 할당한다. 그런 다음, `quicksand.variable`을 사용하여 폰트를 적용하고 싶은 요소에 CSS 변수를 추가한다.  
+2. CSS 변수를 `tailwind.config.js`파일에 추가한다.
+3. `font-sans`라는 유틸리티 클래스를 사용하여 폰트를 적용할 수 있다.  
+
+```js:tailwind.config.js
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  darkMode: ['class'],
+  content: [
+    './pages/**/*.{ts,tsx}',
+    './components/**/*.{ts,tsx}',
+    './app/**/*.{ts,tsx}',
+    './src/**/*.{ts,tsx}',
+  ],
+  prefix: '',
+  theme: {
+    extend: {
+      fontFamily: {
+        sans: ['var(--font-quicksand)'],
+      },
+    },
+  },
+  plugins: [require('tailwindcss-animate')],
+};
+```
+
+```tsx:components/chat-list.tsx
+import { Msg } from '@/lib/types';
+import { cn } from '@/lib/utils';
+import { Quicksand } from 'next/font/google';
+
+const quicksand = Quicksand({
+  subsets: ['latin'],
+  variable: '--font-quicksand',
+});
+
+type ChatListProps = {
+  chatHistory: Msg[];
+  pending: boolean;
+  profilePic: string;
+};
+
+export default function ChatList({
+  chatHistory,
+  pending,
+  profilePic,
+}: ChatListProps) {
+  return (
+    <div>
+       <p
+        className={cn('whitespace-pre-wrap font-sans', quicksand.variable)}>
+          {el.parts}
+        </p>
+    </div>
+  );
+}
+```
