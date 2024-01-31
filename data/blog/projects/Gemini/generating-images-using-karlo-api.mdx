@@ -1,0 +1,116 @@
+---
+title: Generating Images Using Karlo API
+date: '2024-01-08'
+tags: ['React', 'JavaScript', 'Next.js', 'project', 'Gemini']
+draft: false
+summary: Karlo API를 활용한 이미지 생성
+---
+
+*DALL·E* 처럼 프롬프트를 제시하면 이미지를 생성하는 기능을 구현하고 싶었다. 찾아보니 카카오 인공지능 API 중에 [Karlo](https://developers.kakao.com/product/karlo)라는 비슷한 AI 모델이 있었다. 
+문서를 보면서 진행했다.
+
+1. 카카오 API URL과 key를 받아 `.env.local`에 적는다.
+2. `lib/utils.ts`에서 이를 이용하여 이미지를 생성하는 함수를 만든다. 
+
+    ```ts:lib/utils.ts
+    export async function generateImage(prompt: string, samples: number) {
+      const response = await fetch(process.env.KAKAO_API_URL as string, {
+        method: 'POST',
+        headers: {
+          Authorization: `KakaoAK ${process.env.KAKAO_API_KEY as string}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt,
+          samples, // 생성할 이미지 개수
+        }),
+      });
+    
+      const data = await response.json();
+    
+      return data;
+    }
+    ```
+3. 서버 액션을 사용할 것이기 때문에 `app` 폴더 안에 `actions.ts` 파일을 만들고, 여기에 서버 액션을 작성한다.
+   
+   ```ts:app/actions.ts
+   'use server';
+
+    import { image } from '@/lib/types';
+    import { generateImage } from '../lib/utils';
+
+    export async function getImageUrls(formData: FormData) {
+      try {
+          const prompt = formData.get('prompt') as string;
+          const sampleAmount = formData.get('amount') as string;
+  
+          const imageData = await generateImage(prompt, parseInt(sampleAmount));
+  
+          return { imageUrls: imageData.images as image[] };
+      } catch (error) {
+          throw new Error('Failed to get image url');
+      }
+    } 
+   ```  
+4. 서버 액션을 사용하여 이미지 url을 응답으로 받고, `photos` 상태를 변경하여 `Image` 컴포넌트의 `src`로 전달한다.
+
+   ```tsx:components/photos.tsx
+   'use client';
+   
+   import { Input } from '@/components/ui/input';
+   import { getImageUrls } from '@/app/actions';
+   import { useState } from 'react';
+   import { image } from '@/lib/types';
+   import SubmitButton from './submit-button';
+   import { toast } from 'sonner';
+   import SelectOptions from './select-options';
+   import GeneratedPhotos from './generated-photos';
+   
+   export default function Photos() {
+     const [photos, setPhotos] = useState<image[]>([]);
+     const [amount, setAmount] = useState<string>('1');
+   
+     const formAction = async (formData: FormData) => {
+       const result = await getImageUrls(formData);
+   
+       if (result) {
+         let message =
+           amount === '1'
+             ? '🎉 New photo is showing up...'
+             : '🎉 New photos are showing up...';
+   
+         toast(message);
+         setPhotos(result.imageUrls);
+       }
+     };
+   
+     return (
+       <div>
+         <form className='space-y-3' action={formAction}>
+           <Input
+             name='prompt'
+             id='prompt'
+             type='text'
+             placeholder='An armchair in the shape of an avocado'
+             className='focus-visible:ring-0'
+             required
+             autoFocus
+           />
+           <section className='flex items-start gap-x-5 justify-end'>
+             <SelectOptions amount={amount} setAmount={setAmount} />
+             <SubmitButton
+               variant='premium'
+               className='w-32'
+               text='Generate'
+               size='lg'
+             />
+            {/* amount 상태를 formData로 받기 위해 추가 */}
+             <Input type='hidden' name='amount' id='amount' value={amount} /> 
+           </section>
+         </form>
+   
+         <GeneratedPhotos photos={photos} />
+       </div>
+     );
+   }
+   ```
