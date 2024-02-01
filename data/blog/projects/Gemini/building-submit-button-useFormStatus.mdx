@@ -1,0 +1,58 @@
+---
+title: Building Submit Button - useFormStatus
+date: '2024-01-10'
+tags: ['React', 'JavaScript', 'Next.js', 'project', 'Gemini']
+draft: false
+summary: 폼 제출 버튼 - useFormStatus
+---
+
+**서버 액션**을 사용하면, `useFormStatus` 훅을 사용하여 폼이 제출되는 동안 대기 상태를 표시할 수 있다. 여기서 한 가지 주의할 점은 이 훅은 특정 폼의 상태를 반환하므로, 폼 요소의 자식으로 정의되어야 한다는 것이다. 즉, 폼의 자식 컴포넌트가 아닌 폼이 있는 컴포넌트에서 훅을 호출하면 `pending` 값이 반환되지 않는다. 그래서 자식 컴포넌트로서 폼 제출 버튼을 만들었다.
+
+```tsx:components/submit-button.tsx
+'use client';
+
+import { Button } from '@/components/ui/button';
+import Loader from './loader';
+// @ts-expect-error 타입 에러 해결
+import { useFormStatus } from 'react-dom';
+
+type ButtonProps = {
+  variant:
+    | 'default'
+    | 'destructive'
+    | 'outline'
+    | 'secondary'
+    | 'ghost'
+    | 'link'
+    | 'premium';
+  className: string;
+  text: string;
+  size: 'default' | 'sm' | 'lg' | 'icon';
+};
+
+export default function SubmitButton({
+  variant,
+  className,
+  text,
+  size,
+}: ButtonProps) {
+  const { pending } = useFormStatus();
+
+  return (
+    <Button
+      variant={variant}
+      type='submit'
+      size={size}
+      disabled={pending} // 대기 상태일 경우 버튼 비활성화
+      className={className}
+    >
+      {pending ? (
+        // 대기 상태일 경우 loading indicator 표시
+        <Loader className='w-6 h-6 border-primary/50 border-t-primary' /> 
+      ) : (
+        text
+      )}
+    </Button>
+  );
+}
+```
