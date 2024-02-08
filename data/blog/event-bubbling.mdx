@@ -1,9 +1,9 @@
 ---
-title: Event Bubbling
+title: Event Bubbling & Event Capturing
 date: '2023-12-17'
 tags: ['JavaScript', 'Interview']
 draft: false
-summary: 이벤트 버블링과 이벤트 위임
+summary: 이벤트 버블링과 캡처링
 ---
 
 이벤트 버블링(Event Bubbling)은 DOM(Documet Object Model) 이벤트 처리의 한 방식으로, 이벤트가 발생한 가장 깊은 요소부터 시작하여 상위 요소로 전파되는 현상을 말한다. 즉, 특정 요소에서 이벤트가 발생하면, 그 이벤트는 해당 요소의 조상 요소들을 따라 상위로 올라가면서 각각의 요소에 할당된 이벤트 핸들러를 차례로 실행한다.
@@ -12,15 +12,13 @@ summary: 이벤트 버블링과 이벤트 위임
 
 ```html
 <!DOCTYPE html>
-<html>
-<body>
-
-<div onclick="console.log('div clicked')">
-  <button onclick="console.log('button clicked')">Click Me!</button>
-</div>
-
-</body>
-</html>
+  <html>
+    <body>
+      <div onclick="console.log('div clicked')">
+        <button onclick="console.log('button clicked')">Click Me!</button>
+      </div>
+    </body>
+  </html>
 ```
 
 위 예시에서 버튼을 클릭하면, 먼저 `button` 요소에 대한 이벤트 핸들러가 실행되고(`console.log('button clicked')`), 이후 이벤트가 `div` 요소로 버블링되어 `div` 요소의 이벤트 핸들러가 실행된다(`console.log('div clicked')`).
@@ -43,3 +41,24 @@ summary: 이벤트 버블링과 이벤트 위임
     ```
 
 이벤트 버블링은 웹 페이지에서 다양한 이벤트 처리를 효율적으로 관리할 수 있게 해주는 중요한 개념이다. 그러나 때로는 예상치 못한 동작을 일으킬 수도 있으므로, 이를 적절하게 이해하고 활용하는 것이 중요하다.
+
+이벤트 캡처링(Event Capturing)은 이벤트 버블링과 반대 방향으로 이벤트가 처리되는 DOM 이벤트 전파 메커니즘의 한 부분이다. 이벤트 캡처링은 이벤트가 최상위 요소에서 시작하여 이벤트가 발생한 요소로 내려가는 과정을 말한다. 즉, 이벤트가 발생하면, 먼저 document 객체부터 시작하여 이벤트가 실제 발생한 요소까지 내려가면서 각 요소에 할당된 이벤트 핸들러를 실행한다.
+
+이벤트 캡처링의 주요 목적은 이벤트가 목표 요소에 도달하기 전에 이를 가로채 처리할 기회를 제공하는 것이다.
+
+### 이벤트 캡처링과 이벤트 버블링:
+
+- **이벤트 캡처링**은 이벤트가 최상위 요소에서부터 이벤트 대상까지 내려가는 단계다.
+- **이벤트 버블링**은 이벤트가 발생한 요소에서 시작하여 DOM 트리를 따라 상위 요소로 전파되는 단계다.
+
+### 이벤트 리스너 등록 시 캡처링 활성화:
+
+`addEventListener` 함수를 사용하여 이벤트 리스너를 등록할 때, 세 번째 인자로 `true`를 전달함으로써 이벤트 캡처링 단계에서 이벤트 리스너를 호출하도록 설정할 수 있다.
+
+```javascript
+element.addEventListener('click', function(event) {
+  // 이벤트 처리 로직
+}, true); // 캡처링 단계에서 이벤트 리스너 호출
+```
+
+이벤트 캡처링을 활용하면, 이벤트가 목표 요소에 도달하기 전에 특정 로직을 실행하거나, 이벤트의 전파를 조건부로 막는 등의 제어가 가능하다. 하지만 실제 웹 개발에서는 이벤트 버블링을 사용하는 경우가 더 많으며, 이벤트 캡처링은 특수한 상황에서 필요한 경우에만 사용된다.
