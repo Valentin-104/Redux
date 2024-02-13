@@ -1,0 +1,107 @@
+---
+title: Context API
+date: '2024-02-05'
+tags: ['interview', 'React']
+draft: false
+summary: Context API를 사용한 전역 상태 관리
+---
+
+React의 Context API는 컴포넌트 트리를 통해 데이터를 전역적으로 전달할 수 있는 방법을 제공한다. 이를 통해 props를 중간 컴포넌트들에게 일일이 전달하지 않아도 되므로, 코드의 복잡성을 줄이고 개발 효율성을 높일 수 있다. Context는 주로 전역 상태 관리, 테마 설정, 로케일 정보 등을 관리하는 데 유용하게 사용된다.
+사용자의 로그인 상태와 사용자 정보를 전역적으로 관리하는 간단한 예시를 만들어 보자.
+
+### 1단계: Context 생성하기
+
+먼저, 사용자 정보와 관련된 Context를 생성한다. 이 예제에서는 사용자 이름(`userName`)과 로그인 상태(`isLoggedIn`)를 관리한다고 가정한다.
+
+```javascript
+// UserContext.js
+import React from 'react';
+
+// 사용자 정보와 로그인 상태를 관리할 Context 생성
+// 기본값으로는 로그인 상태를 false로, 사용자 이름은 빈 문자열로 설정
+const UserContext = React.createContext({
+  isLoggedIn: false,
+  userName: '',
+  login: () => {}, // 로그인 함수는 여기서는 비워둠
+  logout: () => {} // 로그아웃 함수는 여기서는 비워둠
+});
+
+export default UserContext;
+```
+
+### 2단계: Provider 컴포넌트로 데이터 제공하기
+
+애플리케이션 최상위 컴포넌트에서 `UserContext.Provider`를 사용해 모든 하위 컴포넌트에게 사용자 정보를 제공한다. 로그인과 로그아웃 함수도 함께 제공한다.
+
+```jsx
+// App.js
+import React, { useState } from 'react';
+import UserContext from './UserContext';
+import UserProfile from './UserProfile';
+
+function App() {
+  const [user, setUser] = useState({
+    isLoggedIn: false,
+    userName: ''
+  });
+
+  const login = (name) => {
+    setUser({ isLoggedIn: true, userName: name });
+  };
+
+  const logout = () => {
+    setUser({ isLoggedIn: false, userName: '' });
+  };
+
+  return (
+    <UserContext.Provider value={{ ...user, login, logout }}>
+      <div>
+        <h1>Welcome to the App!</h1>
+        <UserProfile />
+      </div>
+    </UserContext.Provider>
+  );
+}
+
+export default App;
+```
+
+### 3단계: 하위 컴포넌트에서 Context 사용하기
+
+`UserProfile` 컴포넌트에서 `useContext` Hook을 사용하여 사용자 정보와 로그인, 로그아웃 함수를 사용할 수 있다.
+
+```jsx
+// UserProfile.js
+import React, { useContext } from 'react';
+import UserContext from './UserContext';
+
+function UserProfile() {
+  const { isLoggedIn, userName, login, logout } = useContext(UserContext);
+
+  return (
+    <div>
+      {isLoggedIn ? (
+        <>
+          <p>Welcome, {userName}!</p>
+          <button onClick={logout}>Logout</button>
+        </>
+      ) : (
+        <>
+          <p>Please log in.</p>
+          <button onClick={() => login('John Doe')}>Login</button>
+        </>
+      )}
+    </div>
+  );
+}
+
+export default UserProfile;
+```
+
+이 예시에서는 간단하게 사용자의 로그인 상태를 관리하며, `UserContext`를 통해 로그인 상태와 사용자 이름, 그리고 로그인 및 로그아웃 함수를 하위 컴포넌트인 `UserProfile`에 전달하여 사용하고 있다. 이로써, `UserProfile` 컴포넌트는 사용자의 로그인 상태에 따라 다른 UI를 표시할 수 있게 된다.
+
+### Context API의 장점과 주의점
+
+- **장점:** 중첩된 많은 컴포넌트에 데이터를 전달할 때 props 드릴링 문제를 해결할 수 있다. 전역 상태 관리 라이브러리를 사용하지 않고도 애플리케이션의 여러 부분에서 데이터를 쉽게 공유할 수 있다.
+
+- **주의점:** Context API는 전역 상태 관리를 위한 간단한 경우에 적합하지만, 복잡한 상태 관리가 필요한 대규모 애플리케이션에서는 Redux나 MobX와 같은 상태 관리 라이브러리를 고려하는 것이 좋다. Context API를 사용할 때는 컴포넌트의 리렌더링을 최적화하는 방법을 고려해야 하며, 불필요한 렌더링이 발생하지 않도록 주의해야 한다.
