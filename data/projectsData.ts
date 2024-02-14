@@ -17,6 +17,12 @@ const projectsData = [
     imgSrc: '/static/images/nft.png',
     href: '/blog/projects/NFT-Trade-Shop',
   },
+  {
+    title: 'React Projects for Interview',
+    description: `과제 전형을 위한 React 프로젝트`,
+    imgSrc: '/static/images/interview.jpg',
+    href: '/blog/projects/React-Projects-for-Interview',
+  },
   // {
   //   title: 'AIWanderlust',
   //   description: `AI-Powered Travel Itinerary Planner`,
