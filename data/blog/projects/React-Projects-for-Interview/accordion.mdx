@@ -1,0 +1,177 @@
+---
+title: Accordion
+date: '2024-01-05'
+tags: ['project', 'React', 'interview', 'JavaScript', 'CSS']
+draft: false
+summary: 아코디언 UI
+---
+
+Netflix의 FAQ 섹션처럼 [아코디언 UI](https://github.com/Valentin1495/React-Projects-for-Interview/tree/main/src/components/Accordion)를 만들고자 했다.
+각각의 콘텐츠를 열고 닫는 기능을 구현하는 것은 어렵지 않았지만, 여기에 **애니메이션**을 적용하는 데 애를 먹었다. **ChatGPT**에게 물어보아 핵심 로직을 알아낼 수 있었다.
+
+닫혀있을 때는 콘텐츠에 대해 `max-height: 0`, `overflow: hidden`을 적용하여 보이지 않게 하고, 열었을 때 `max-height: 200px` 로 설정하여 보이게 한다. 그리고 이 속성에 대하여 `transition` 효과를 적용한다. 
+
+또한 콘텐츠에 padding을 주기 위하여 콘텐츠를 `<p>`로 감싸고 여기에 `padding: 20px`을 적용하였다.
+
+```css:src/components/Accordion/accordion.css
+.btn {
+  cursor: pointer;
+  background-color: black;
+  color: white;
+  font-weight: bold;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 1.1rem;
+  transition: opacity 150ms ease-in-out;
+  width: fit-content;
+  margin-top: 50px;
+}
+
+.btn:hover {
+  opacity: 80%;
+}
+
+.accordion-item {
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1px;
+}
+
+.accordion-trigger {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: rgba(0, 0, 0, 0.05);
+  padding: 0 20px;
+  border-radius: 3px;
+  transition: background-color 150ms ease-out;
+}
+
+.accordion-trigger:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.accordion-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: all 200ms ease-in-out;
+  border-radius: 3px;
+}
+
+.accordion-content.open {
+  max-height: 200px;
+}
+
+.chevron {
+  transition: transform 200ms ease-in-out;
+  flex-shrink: 0;
+}
+
+.chevron.open {
+  transform: rotate(180deg);
+}
+```
+
+```tsx:src/components/Accordion/accordion.tsx
+import { useState } from 'react';
+import './accordion.css';
+import { ChevronDown } from 'lucide-react';
+
+type QA = {
+  id: string;
+  question: string;
+  answer: string;
+};
+
+type AccordionProps = {
+  data: QA[];
+};
+
+export default function Accordion({ data }: AccordionProps) {
+  const [multiSelection, setMultiSelection] = useState<boolean>(false);
+  const [selected, setSelected] = useState<string[]>([]);
+
+  const toggle = (id: string) => {
+    const show = selected.includes(id);
+
+    if (multiSelection) {
+      if (show) {
+        setSelected((prev) => prev.filter((el) => el !== id));
+      } else {
+        setSelected((prev) => [...prev, id]);
+      }
+    } else {
+      if (show) {
+        setSelected([]);
+      } else {
+        setSelected([id]);
+      }
+    }
+  };
+
+  const enableMultiSelection = () => {
+    setMultiSelection((prev) => !prev);
+    setSelected([]);
+  };
+
+  return (
+    <div
+      style={{
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+      }}
+    >
+      <button className='btn' onClick={enableMultiSelection}>
+        Enable multi selection
+      </button>
+
+      <h2
+        style={{
+          textAlign: 'center',
+        }}
+      >
+        Frequently Asked Questions
+      </h2>
+
+      <div
+        style={{
+          width: '80%',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '8px',
+          marginBottom: '50px',
+        }}
+      >
+        {data.map(({ id, question, answer }) => (
+          <section key={id} className='accordion-item'>
+            <article className='accordion-trigger' onClick={() => toggle(id)}>
+              <h3>{question}</h3>
+              <ChevronDown
+                className={`${selected.includes(id) && 'open'} chevron`}
+              />
+            </article>
+
+            <article
+              className={`${selected.includes(id) && 'open'} accordion-content`}
+            >
+              <p
+                style={{
+                  backgroundColor: 'rgba(0, 0, 0, 0.05)',
+                  padding: '20px',
+                }}
+              >
+                {answer}
+              </p>
+            </article>
+          </section>
+        ))}
+      </div>
+    </div>
+  );
+}
+```
