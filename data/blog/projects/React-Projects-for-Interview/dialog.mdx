@@ -1,0 +1,143 @@
+---
+title: Dialog
+date: '2024-01-23'
+tags: ['project', 'React', 'interview', 'JavaScript', 'CSS']
+draft: false
+summary: Dialog UI
+---
+
+개요: dialog UI를 만든다. 
+
+로직: dialog가 열렸는지 닫혔는지를 `open`이라는 **state**로 설정한다. 이는 boolean으로서, open 버튼을 클릭하면 true로 변경되어 dialog가 나타나고, 오버레이나 close 버튼을 누르면 false가 되어 dialog가 사라진다. 애니메이션을 추가하기 위해 `animation`속성과 `@keyframes` rule을 이용했다.
+
+[Dialog](https://github.com/Valentin1495/React-Projects-for-Interview/tree/main/src/components/Dialog)
+
+```tsx:src/components/Dialog/dialog.tsx
+import { useState } from 'react';
+import './dialog.css';
+
+export default function Dialog() {
+  const [open, setOpen] = useState<boolean>(false);
+  const openDialog = () => {
+    setOpen(true);
+  };
+  const closeDialog = () => {
+    setOpen(false);
+  };
+
+  return (
+    <div
+      style={{
+        height: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      <button onClick={openDialog} className='dialog-trigger-btn'>
+        Show Dialog
+      </button>
+      {open && (
+        <div className='dialog'>
+          <section
+            style={{
+              position: 'fixed',
+              inset: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.3)',
+            }}
+            onClick={closeDialog}
+          ></section>
+          <section
+            style={{
+              backgroundColor: 'white',
+              position: 'fixed',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              borderRadius: '8px',
+              textAlign: 'left',
+              padding: '0 20px 20px',
+            }}
+          >
+            <h3>Are you absolutely sure?</h3>
+            <p
+              style={{
+                fontSize: '0.9rem',
+              }}
+            >
+              This action cannot be undone. This will permanently delete your
+              account and remove your data from our servers.
+            </p>
+            <article
+              style={{
+                textAlign: 'right',
+              }}
+            >
+              <button className='dialog-left-btn' onClick={closeDialog}>
+                Cancel
+              </button>
+              <button className='dialog-right-btn' onClick={closeDialog}>
+                Continue
+              </button>
+            </article>
+          </section>
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+```css:src/components/Dialog/dialog.css
+.dialog-trigger-btn {
+  border: 1px solid lightgray;
+  padding: 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 150ms ease-in-out;
+}
+
+.dialog-trigger-btn:hover {
+  background-color: #8888881e;
+}
+
+.dialog {
+  animation: showDialog 150ms ease-in-out;
+}
+
+@keyframes showDialog {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.dialog-left-btn {
+  border: 1px solid lightgray;
+  padding: 5px 8px;
+  border-radius: 5px;
+  transition: background-color 150ms ease-in-out;
+  cursor: pointer;
+}
+
+.dialog-right-btn {
+  padding: 5px 8px;
+  border-radius: 5px;
+  margin-left: 5px;
+  background-color: black;
+  color: white;
+  cursor: pointer;
+  transition: opacity 150ms ease-in-out;
+}
+
+.dialog-left-btn:hover {
+  background-color: #8888881e;
+}
+
+.dialog-right-btn:hover {
+  opacity: 75%;
+}
+```
