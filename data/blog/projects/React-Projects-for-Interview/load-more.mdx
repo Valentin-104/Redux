@@ -1,0 +1,117 @@
+---
+title: Load More
+date: '2024-01-15'
+tags: ['project', 'React', 'interview', 'JavaScript', 'CSS']
+draft: false
+summary: Load More UI
+---
+
+처음에는 데이터를 일정량만 보여주고, 버튼을 누를때마다 추가적으로 데이터를 불러오는 UI를 만들고자 했다.
+이를 구현하기 위해 [Unsplash API](https://unsplash.com/developers)를 사용했다. 최상위 폴더에 `env.local`파일을 만들고, 여기에 `VITE_UNSPLASH_API_URL`과 `VITE_UNSPLASH_ACCESS_KEY`를 적는다.
+Vite app이기 때문에 환경변수는 클라이언트 사이드에서 각각 `import.meta.env.VITE_UNSPLASH_API_URL`과 `import.meta.env.VITE_UNSPLASH_ACCESS_KEY`값으로 접근할 수 있다.
+
+핵심 로직은 버튼을 클릭할 때마다 **page** 상태를 1씩 증가시켜 다음 페이지의 데이터를 불러오고, 이 새로운 데이터를 기존의 데이터에 추가하여 상태를 변경하는 것이다.
+
+[Load More](https://github.com/Valentin1495/React-Projects-for-Interview/tree/main/src/components/Load-More)
+
+```tsx:src/components/Load-More/load-more.tsx
+import { useEffect, useState } from 'react';
+
+type Photo = {
+  id: string;
+  alt_description: string;
+  urls: {
+    small: string;
+  };
+};
+
+export default function LoadMore() {
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [photos, setPhotos] = useState<Photo[]>([]);
+  const [page, setPage] = useState<number>(1);
+
+  useEffect(() => {
+    const getPhotos = async (page: number) => {
+      try {
+        setLoading(true);
+
+        const response = await fetch(
+          `${import.meta.env.VITE_UNSPLASH_API_URL}/photos?client_id=${
+            import.meta.env.VITE_UNSPLASH_ACCESS_KEY
+          }&page=${page}&order_by=popular`
+        );
+
+        const data: Photo[] = await response.json();
+        setPhotos((prev) => {
+          if (!prev.length || prev[0].id !== data[0].id)
+            return [...prev, ...data];
+          return prev;
+        });
+      } catch (error) {
+        setError(error instanceof Error ? error.message : String(error));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getPhotos(page);
+  }, [page]);
+
+  const loadMore = () => {
+    setPage((prev) => prev + 1);
+  };
+
+  return (
+    <div
+      style={{
+        height: '100vh',
+      }}
+    >
+      <section
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+          gap: '16px',
+          padding: '16px',
+        }}
+      >
+        {photos.map(({ id, urls, alt_description }) => (
+          <article
+            key={id}
+            style={{
+              aspectRatio: '1 / 1',
+              borderRadius: '8px',
+              overflow: 'hidden',
+            }}
+          >
+            <img
+              src={urls.small}
+              alt={alt_description}
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+              }}
+            />
+          </article>
+        ))}
+      </section>
+
+      <section
+        style={{
+          padding: '16px',
+        }}
+      >
+        {loading ? (
+          <p>Loading...</p>
+        ) : error ? (
+          <p>{error}</p>
+        ) : (
+          <button onClick={loadMore}>Load more</button>
+        )}
+      </section>
+    </div>
+  );
+}
+```
