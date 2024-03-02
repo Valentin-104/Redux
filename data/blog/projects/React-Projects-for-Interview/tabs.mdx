@@ -1,0 +1,73 @@
+---
+title: Tabs
+date: '2024-01-21'
+tags: ['project', 'React', 'interview', 'JavaScript', 'CSS']
+draft: false
+summary: 탭 UI
+---
+
+개요: 탭 UI를 만든다.
+
+로직: 각각의 탭에 id를 부여하고, 선택된 탭의 id를 `selectedTab`이라는 **state**로 설정한다. 탭을 클릭 했을 시 `selectedTab`을 그 탭의 id로 변경하여 각 탭의 id와 `selectedTab`을 비교한다. 
+
+[Tabs](https://github.com/Valentin1495/React-Projects-for-Interview/tree/main/src/components/Tabs)
+
+```tsx:src/components/Tabs/tabs.tsx
+import { useState } from 'react';
+
+type TabsProps = {
+  data: {
+    id: number;
+    title: string;
+    content: string;
+  }[];
+};
+
+export default function Tabs({ data }: TabsProps) {
+  const [selectedTab, setSelectedTab] = useState<number>(1);
+  const selectTab = (id: number) => {
+    setSelectedTab(id);
+  };
+
+  return (
+    <div
+      style={{
+        height: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '30px',
+      }}
+    >
+      <section
+        style={{
+          padding: '5px',
+          borderRadius: '3px',
+          backgroundColor: '#8888881e',
+          display: 'flex',
+          width: '400px',
+        }}
+      >
+        {data.map(({ id, title }) => (
+          <button
+            style={{
+              backgroundColor: selectedTab === id ? 'white' : 'transparent',
+              color: selectedTab === id ? 'black' : 'rgba(0,0,0,0.5)',
+              width: '100%',
+              borderRadius: '3px',
+              padding: '5px',
+              transition: 'all 150ms ease-in-out',
+            }}
+            key={id}
+            onClick={() => selectTab(id)}
+          >
+            {title}
+          </button>
+        ))}
+      </section>
+      <section>{data.filter((el) => el.id === selectedTab)[0].content}</section>
+    </div>
+  );
+}
+```
