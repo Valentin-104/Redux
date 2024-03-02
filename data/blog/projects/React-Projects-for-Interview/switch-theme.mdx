@@ -1,0 +1,86 @@
+---
+title: Switch Theme
+date: '2024-01-19'
+tags: ['project', 'React', 'interview', 'JavaScript', 'CSS', 'library', 'custom hook', 'local storage']
+draft: false
+summary: 라이트/다크 모드 변경
+---
+
+개요: 버튼을 클릭하여 화면 스타일을 라이트/다크 모드로 변경한다.
+
+로직: 라이트/다크 모드로 한 번 변경한 이후에는 다시 변경하지 않는 이상 그 스타일이 유지되어야한다. 그래서 **local storage**를 활용하는 **custom hook**을 만들었다.
+
+[custom hooks](https://github.com/Valentin1495/React-Projects-for-Interview/tree/main/src/hooks)
+
+```ts:src/hooks/use-local-storage.ts
+import { useEffect, useState } from 'react';
+
+export function useLocalStorage(key: string, defaultValue: string) {
+  const [value, setValue] = useState(() => {
+    let currentValue = localStorage.getItem(key);
+
+    if (currentValue) return currentValue;
+    return defaultValue;
+  });
+
+  useEffect(() => {
+    localStorage.setItem(key, value);
+  }, [key, value]);
+
+  return { value, setValue };
+}
+```
+
+[Switch Theme](https://github.com/Valentin1495/React-Projects-for-Interview/tree/main/src/components/Switch-Theme)
+
+```tsx:src/components/Switch-Theme/switch-theme.tsx
+import { Moon, Sun } from 'lucide-react';
+import { useLocalStorage } from '../../hooks/use-local-storage';
+
+export default function SwitchTheme() {
+  const { value: theme, setValue: setTheme } = useLocalStorage(
+    'theme',
+    'light'
+  );
+
+  const toggleTheme = () => {
+    setTheme(() => (theme === 'light' ? 'dark' : 'light'));
+  };
+
+  return (
+    <div
+      style={{
+        height: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexDirection: 'column',
+        backgroundColor: theme === 'light' ? 'white' : 'black',
+        transition: 'all 300ms ease-in-out',
+      }}
+    >
+      <p
+        style={{
+          fontWeight: 'bold',
+          fontSize: '2rem',
+          color: theme === 'light' ? 'black' : 'white',
+        }}
+      >
+        Hello World!
+      </p>
+      <button
+        style={{
+          cursor: 'pointer',
+        }}
+        onClick={toggleTheme}
+      >
+        {theme === 'light' ? (
+          <Sun size={32} strokeWidth={2.5} />
+        ) : (
+          <Moon size={32} strokeWidth={2.5} color='white' />
+        )}
+      </button>
+    </div>
+  );
+}
+```

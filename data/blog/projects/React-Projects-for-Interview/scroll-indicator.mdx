@@ -1,0 +1,100 @@
+---
+title: Scroll Indicator
+date: '2024-01-19'
+tags: ['project', 'React', 'interview', 'JavaScript', 'CSS', 'custom Hook']
+draft: false
+summary: 스크롤 진행 상황 표시 
+---
+
+개요: 스크롤의 진행 상황을 화면 위에 바의 길이로 표시한다.
+
+로직: `document.body.offsetHeight`은 문서 전체 높이고, `window.innerHeight`은 브라우저의 높이다. 따라서 이 둘을 뺀 값은 스크롤 할 수 있는 전체 길이가 된다. 
+현재 스크롤한 길이는 `window.scrollY`이기 때문에 `(window.scrollY / scrollHeight) * 100`값으로 현재 스크롤 진행 상황을 백분율로 표시할 수 있다.
+
+[custom hooks](https://github.com/Valentin1495/React-Projects-for-Interview/tree/main/src/hooks)
+
+```ts:src/hooks/use-scroll-percentage.ts
+import { useEffect, useState } from 'react';
+
+export function useScrollPercentage() {
+  const [scrollPercentage, setScrollPercentage] = useState<number>(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollHeight = document.body.offsetHeight - window.innerHeight;
+      setScrollPercentage(
+        scrollHeight > 0 ? Math.floor((window.scrollY / scrollHeight) * 100) : 0
+      );
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
+  return scrollPercentage;
+}
+```
+
+[Scroll Indicator](https://github.com/Valentin1495/React-Projects-for-Interview/tree/main/src/components/Scroll-Indicator)
+
+```tsx:src/components/Scroll-Indicator/scroll-indicator.tsx
+import { useEffect, useState } from 'react';
+import { useScrollPercentage } from '../../hooks/use-scroll-percentage';
+
+type Post = {
+  id: number;
+  title: string;
+};
+
+export default function ScrollIndicator() {
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const scrollPercentage = useScrollPercentage();
+
+  useEffect(() => {
+    const getPosts = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(
+          import.meta.env.VITE_JSON_PLACEHOLDER_API_URL + '/posts'
+        );
+
+        const data = await response.json();
+        setPosts(data);
+      } catch (error) {
+        setError(error instanceof Error ? error.message : String(error));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getPosts();
+  }, []);
+
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>{error}</p>;
+
+  return (
+    <div>
+      <div
+        style={{
+          height: '5px',
+          backgroundColor: '#2a9492',
+          position: 'fixed',
+          top: 0,
+          width: scrollPercentage + '%',
+          transition: 'width 100ms',
+        }}
+      ></div>
+      {posts.map(({ id, title }) => (
+        <p key={id}>{title}</p>
+      ))}
+    </div>
+  );
+}
+```
