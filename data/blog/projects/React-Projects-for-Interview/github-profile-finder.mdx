@@ -1,0 +1,172 @@
+---
+title: Github Profile Finder
+date: '2024-01-27'
+tags: ['project', 'React', 'interview', 'JavaScript', 'CSS']
+draft: false
+summary: Github 프로필 검색 
+---
+
+개요: 사용자 이름을 입력하면 Github API를 호출하여 해당 Github 프로필을 검색한다.
+
+로직: **state**를 이용하여 `input`값을 받고, `form`을 제출하여 데이터를 불러오는 것이다. 프로필 생성 날짜는 문자열로 오기 때문에, 이를 `Date`객체로 변환하고 `toLocaleDateString`메서드를 사용하여 표기 방식을 바꿨다. (**ChatGPT**가 알려줬다.)
+
+[Github Profile Finder](https://github.com/Valentin1495/React-Projects-for-Interview/tree/main/src/components/Github-Profile-FInder)
+
+```tsx:src/components/Github-Profile-FInder/github-profile-finder.tsx
+import { FormEvent, useState } from 'react';
+import './github-profile-finder.css';
+import { formatDate } from './format-date';
+
+type User = {
+  id: number;
+  avatar_url: string;
+  created_at: string;
+  location: string;
+  name: string;
+  html_url: string;
+};
+
+export default function GithubProfileFinder() {
+  const [input, setInput] = useState<string>('');
+  const [user, setUser] = useState<User | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+
+  const searchUser = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    try {
+      setLoading(true);
+      const response = await fetch(
+        `${import.meta.env.VITE_GITHUB_API_URL}/${input}`
+      );
+      const data = await response.json();
+
+      if (data.message) {
+        setUser(null);
+        setError(data.message);
+      } else {
+        const { id, avatar_url, created_at, location, name, html_url } = data;
+
+        setUser({
+          id,
+          avatar_url,
+          created_at,
+          location,
+          name,
+          html_url,
+        });
+        setError(null);
+      }
+    } catch (error) {
+      setError(error instanceof Error ? error.message : String(error));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div
+      style={{
+        height: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+      }}
+    >
+      <form
+        onSubmit={searchUser}
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'start',
+          gap: '10px',
+          padding: '50px',
+        }}
+      >
+        <label htmlFor='username'>Username</label>
+        <input
+          id='username'
+          type='text'
+          placeholder='Valentin1495'
+          style={{
+            all: 'unset',
+            border: '1px solid lightgray',
+            textAlign: 'left',
+            borderRadius: '3px',
+            padding: '5px 10px',
+          }}
+          autoFocus
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+        />
+        <button
+          type='submit'
+          className='submit-btn'
+          disabled={loading || !input.trim()}
+        >
+          {loading ? 'Submitting...' : 'Submit'}
+        </button>
+      </form>
+      {error ? (
+        <p>{error}</p>
+      ) : (
+        user && (
+          <section>
+            <img
+              src={user.avatar_url}
+              alt='profile picture'
+              width={200}
+              height={200}
+              style={{
+                objectFit: 'cover',
+                borderRadius: '9999px',
+              }}
+            />
+            <h3>name: {user.name ?? 'unknown'}</h3>
+            <h4>location: {user.location ?? 'unknown'}</h4>
+            <h4>joined {formatDate(user.created_at)}</h4>
+            <a href={user.html_url} target='blank'>
+              Github
+            </a>
+          </section>
+        )
+      )}
+    </div>
+  );
+}
+```
+
+```css:src/components/Github-Profile-FInder/github-profile-finder.css
+.submit-btn {
+  color: white;
+  background-color: black;
+  padding: 6px 12px;
+  border-radius: 3px;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: opacity 150ms ease-in-out;
+}
+
+.submit-btn:hover {
+  opacity: 75%;
+}
+
+.submit-btn:disabled {
+  pointer-events: none;
+  opacity: 50%;
+}
+```
+
+```ts:src/components/Github-Profile-FInder/format-date.ts
+export function formatDate(dateString: string) {
+  const date = new Date(dateString);
+
+  // Specify the locale and options for the desired output
+  const formattedDate = date.toLocaleDateString('en-US', {
+    month: 'long', // Full name of the month
+    year: 'numeric', // Numeric value of the year
+  });
+
+  return formattedDate;
+}
+```

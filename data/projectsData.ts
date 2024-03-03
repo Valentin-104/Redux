@@ -19,7 +19,7 @@ const projectsData = [
   },
   {
     title: 'React Projects for Interview',
-    description: `과제 전형을 위한 React 프로젝트`,
+    description: `과제 대비 React 프로젝트`,
     imgSrc: '/static/images/interview.jpg',
     href: '/blog/projects/React-Projects-for-Interview',
   },
