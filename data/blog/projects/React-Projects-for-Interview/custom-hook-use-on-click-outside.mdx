@@ -1,0 +1,78 @@
+---
+title: Custom Hook - useOnClickOutside
+date: '2024-02-21'
+tags: ['project', 'React', 'interview', 'JavaScript', 'custom hook', 'hook']
+draft: false
+summary: 특정 섹션의 외부를 클릭할 시 호출되는 커스텀 훅
+---
+
+개요: dialog나 dropdown menu가 열려있을 때, 외부를 클릭하여 이를 닫고자 할 때 사용할 수 있는 커스텀 훅 
+
+로직: **useRef**를 호출하여 내부 섹션의 `ref`속성에 걸고, `contains`메서드와 **mousedown event**의 **target**을 활용한다. (**ChatGPT**의 도움을 받았다.)
+
+[custom hooks](https://github.com/Valentin1495/React-Projects-for-Interview/tree/main/src/hooks)
+
+```ts:src/hooks/use-on-click-outside.ts
+import { useEffect, useRef, useState } from 'react';
+
+export function useOnClickOutside() {
+  const [open, setOpen] = useState<boolean>(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  const handleClickOutside = (event: MouseEvent) => {
+    if (ref.current && !ref.current.contains(event.target as Node)) {
+      setOpen(false);
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [handleClickOutside]);
+
+  return { open, setOpen, ref };
+}
+```
+
+[hook test](https://github.com/Valentin1495/React-Projects-for-Interview/tree/main/src/components/Use-On-Click-Outside)
+
+```tsx:src/components/Use-On-Click-Outside/test-hook.tsx
+import { useOnClickOutside } from '../../hooks/use-on-click-outside';
+
+export default function TestHook() {
+  const { open, setOpen, ref } = useOnClickOutside();
+
+  return (
+    <div
+      style={{
+        height: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      {open ? (
+        <div
+          ref={ref}
+          style={{
+            backgroundColor: 'rgba(0,0,0,0.1)',
+            width: '50%',
+            height: '50%',
+          }}
+        ></div>
+      ) : (
+        <button
+          style={{
+            cursor: 'pointer',
+          }}
+          onClick={() => setOpen(true)}
+        >
+          Open
+        </button>
+      )}
+    </div>
+  );
+}
+```

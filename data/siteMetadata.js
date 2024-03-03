@@ -16,7 +16,7 @@ const siteMetadata = {
   email: 'valentink1495@gmail.com',
   twitter: 'https://twitter.com/Noah_Han14',
   github: 'https://github.com/Valentin1495',
-  instagram: 'https://instagram.com/noah.han14',
+  // instagram: 'https://instagram.com/noah.han14',
   locale: 'en-US',
   analytics: {
     // If you want to use an analytics provider you have to add it to the
