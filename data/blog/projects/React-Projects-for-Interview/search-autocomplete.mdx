@@ -1,0 +1,201 @@
+---
+title: Search Autocomplete
+date: '2024-01-29'
+tags: ['project', 'React', 'interview', 'JavaScript', 'CSS']
+draft: false
+summary: 검색 자동 완성
+---
+
+개요: 데이터를 불러와 이를 모든 검색 결과로 하는 **state**를 설정한다. `input`에 값을 입력 시 이 값을 포함한 모든 검색 결과를 자동 완성하여 보여준다.
+
+로직: `input`에 입력한 값을 `query`라는 **state**로 설정하고, 모든 검색 결과인 `emailList`를 이 `query`로 **filter**한다. 이 때 같은 `query`에 대한 **filter**함수의 결괏값을 기억하기 위해 `useMemo`를 사용했다.
+
+[Search Autocomplete](https://github.com/Valentin1495/React-Projects-for-Interview/tree/main/src/components/Search-Filter)
+
+```tsx:src/components/Search-Filter/search-filter.tsx
+import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from 'react';
+import './search-filter.css';
+import { Search } from 'lucide-react';
+
+type Email = {
+  id: number;
+  email: string;
+};
+
+export default function SearchFilter() {
+  const [emailList, setEmailList] = useState<Email[]>([]);
+  const [query, setQuery] = useState<string>('');
+  const [selected, setSelected] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const getEmailId = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(
+          import.meta.env.VITE_JSON_PLACEHOLDER_API_URL + '/comments'
+        );
+
+        const data: Email[] = await response.json();
+        setEmailList(
+          data.map(({ email, id }) => {
+            const idx = email.indexOf('@');
+            return {
+              email: email.slice(0, idx),
+              id,
+            };
+          })
+        );
+      } catch (error) {
+        setError(error instanceof Error ? error.message : String(error));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getEmailId();
+  }, []);
+
+  const filteredEmails = useMemo(
+    () =>
+      emailList.filter(({ email }) =>
+        email.toLowerCase().includes(query.toLowerCase())
+      ),
+    [emailList, query]
+  );
+
+  const searchEmailId = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+  };
+
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setQuery(e.target.value);
+    setSelected(false);
+  };
+
+  const handleClick = (email: string) => {
+    setQuery(email);
+    setSelected(true);
+  };
+
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>{error}</p>;
+
+  return (
+    <div
+      style={{
+        padding: '50px',
+      }}
+    >
+      <form onSubmit={searchEmailId} className='search-form'>
+        <input
+          style={{
+            all: 'unset',
+            textAlign: 'left',
+            paddingLeft: '20px',
+            paddingRight: '5px',
+            width: '100%',
+          }}
+          type='search'
+          placeholder='Search'
+          autoFocus
+          value={query}
+          onChange={handleChange}
+        />
+        <button type='submit' className='submit-btn' disabled={!query.trim()}>
+          <Search color='black' size={20} strokeWidth={1.5} />
+        </button>
+      </form>
+      {query.trim() && (
+        <section
+          className='emails-container'
+          style={{
+            display: selected ? 'none' : 'flex',
+            flexDirection: 'column',
+            boxShadow: '0px 0px 8px rgba(0, 0, 0, 0.25)',
+
+            margin: '10px auto',
+            borderRadius: '10px',
+            padding: '10px 0px',
+            textAlign: 'left',
+          }}
+        >
+          {filteredEmails.length ? (
+            filteredEmails.map(({ email, id }) => (
+              <article
+                key={id}
+                className='filtered-email'
+                onClick={() => handleClick(email)}
+              >
+                {email}
+              </article>
+            ))
+          ) : (
+            <article
+              style={{
+                padding: '0 10px',
+              }}
+            >
+              No results
+            </article>
+          )}
+        </section>
+      )}
+    </div>
+  );
+}
+```
+
+```css:src/components/Search-Filter/search-filter.css
+.submit-btn {
+  all: unset;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: background-color 150ms ease-in-out;
+  border-left: 1px solid lightgray;
+  background-color: rgba(211, 211, 211, 0.252);
+  border-top-right-radius: 9999px;
+  border-bottom-right-radius: 9999px;
+  display: flex;
+  align-items: center;
+}
+
+.submit-btn:hover {
+  background-color: rgba(211, 211, 211, 0.344);
+}
+
+.submit-btn:disabled {
+  pointer-events: none;
+}
+
+.search-form {
+  border: 1px solid lightgray;
+  width: 50%;
+  border-radius: 9999px;
+  margin: 50px auto 0;
+  display: flex;
+  align-items: center;
+}
+.emails-container {
+  width: 50%;
+}
+
+.filtered-email {
+  padding: 5px 10px;
+  transition: background-color 100ms ease-in-out;
+}
+
+.filtered-email:hover {
+  background-color: lightgray;
+}
+
+@media (max-width: 768px) {
+  .search-form {
+    width: 70%;
+  }
+  .emails-container {
+    width: 70%;
+  }
+}
+```
