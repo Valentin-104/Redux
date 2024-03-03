@@ -1,0 +1,67 @@
+---
+title: Custom Hook - useFetch
+date: '2024-02-20'
+tags: ['project', 'React', 'interview', 'JavaScript', 'custom hook']
+draft: false
+summary: 데이터를 불러오는 커스텀 훅
+---
+
+데이터를 불러올 때 전체적인 패턴은 같고 API url만 바뀌기 때문에, url을 매개변수로 한 **커스텀 훅**을 만들었다.
+
+[custom hooks](https://github.com/Valentin1495/React-Projects-for-Interview/tree/main/src/hooks)
+
+```ts:src/hooks/use-fetch.ts
+import { useEffect, useState } from 'react';
+
+type Todos = {
+  id: number;
+  title: string;
+};
+
+export function useFetch(url: string) {
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [data, setData] = useState<Todos[]>([]);
+
+  useEffect(() => {
+    const getData = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(url);
+        const result = await response.json();
+        setData(result);
+      } catch (error) {
+        setError(error instanceof Error ? error.message : String(error));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getData();
+  }, [url]);
+
+  return { loading, error, data };
+}
+```
+
+[hook test](https://github.com/Valentin1495/React-Projects-for-Interview/tree/main/src/components/Use-Fetch)
+
+```tsx:src/components/Use-Fetch/test-hook.tsx
+import { useFetch } from '../../hooks/use-fetch';
+
+export default function TestHook() {
+  const { loading, error, data } = useFetch(
+    import.meta.env.VITE_JSON_PLACEHOLDER_API_URL + '/todos'
+  );
+
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>{error}</p>;
+  return (
+    <div>
+      {data.map((el) => (
+        <p key={el.id}>{el.title}</p>
+      ))}
+    </div>
+  );
+}
+```
