@@ -1,7 +1,7 @@
 ---
 title: Load More
 date: '2024-01-15'
-tags: ['project', 'React', 'interview', 'JavaScript', 'CSS']
+tags: ['CSS', 'JavaScript', 'React', 'interview', 'project']
 draft: false
 summary: Load More UI
 ---
@@ -13,7 +13,7 @@ Vite app이기 때문에 환경변수는 클라이언트 사이드에서 각각 
 
 핵심 로직은 버튼을 클릭할 때마다 **page** 상태를 1씩 증가시켜 다음 페이지의 데이터를 불러오고, 이 새로운 데이터를 기존의 데이터에 추가하여 상태를 변경하는 것이다.
 
-[Load More](https://github.com/Valentin1495/React-Projects-for-Interview/tree/main/src/components/Load-More)
+[Load More](https://coding-interview-prep.vercel.app/load-more)
 
 ```tsx:src/components/Load-More/load-more.tsx
 import { useEffect, useState } from 'react';
@@ -66,15 +66,16 @@ export default function LoadMore() {
   return (
     <div
       style={{
-        height: '100vh',
+        minHeight: '100vh',
+        padding: '16px',
       }}
     >
       <section
         style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-          gap: '16px',
-          padding: '16px',
+          gap: 16,
+          marginBottom: '16px',
         }}
       >
         {photos.map(({ id, urls, alt_description }) => (
@@ -101,15 +102,22 @@ export default function LoadMore() {
 
       <section
         style={{
-          padding: '16px',
+          textAlign: 'center',
         }}
       >
-        {loading ? (
-          <p>Loading...</p>
-        ) : error ? (
-          <p>{error}</p>
+        {error ? (
+          <p
+            style={{
+              marginTop: '40px',
+              marginBottom: '30px',
+            }}
+          >
+            {error}
+          </p>
         ) : (
-          <button onClick={loadMore}>Load more</button>
+          <button className='btn' onClick={loadMore} disabled={loading}>
+            {loading ? 'Loading...' : 'Load more'}
+          </button>
         )}
       </section>
     </div>

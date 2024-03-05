@@ -1,7 +1,7 @@
 ---
 title: Star Rating
 date: '2024-01-11'
-tags: ['project', 'React', 'interview', 'JavaScript', 'CSS', 'library']
+tags: ['CSS', 'JavaScript', 'React', 'interview', 'project', 'library']
 draft: false
 summary: 별점 주기
 ---
@@ -14,7 +14,7 @@ summary: 별점 주기
 
 클릭을 하지 않고, 마우스 커서를 별에 넣으면 노란색을 칠하고, 빼면 색을 지운다. 별점을 주는 것은 아니다. 이는 `onMouseEnter`와 `onMouseLeave`라는 event handler에서 `index`와 `prevIndex` 상태를 변경하여 해결했다. 
 
-[Star Rating](https://github.com/Valentin1495/React-Projects-for-Interview/tree/main/src/components/Star-Rating)
+[Star Rating](https://coding-interview-prep.vercel.app/star-rating)
 
 ```tsx:src/components/Star-Rating/star-rating.tsx
 import { Star } from 'lucide-react';
@@ -39,6 +39,10 @@ export default function StarRating() {
       onMouseEnter={() => setIndex(idx)}
       onMouseLeave={() => (!determined ? setIndex(-1) : setIndex(prevIndex))}
       onClick={() => determineRating(idx)}
+      style={{
+        cursor: 'pointer',
+        transition: 'all 100ms ease-in-out',
+      }}
     />
   ));
 
@@ -48,7 +52,7 @@ export default function StarRating() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        height: '100vh',
+        minHeight: '100vh',
       }}
     >
       {starIcons}

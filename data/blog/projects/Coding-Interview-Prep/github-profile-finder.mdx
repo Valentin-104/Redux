@@ -1,7 +1,7 @@
 ---
 title: Github Profile Finder
 date: '2024-01-27'
-tags: ['project', 'React', 'interview', 'JavaScript', 'CSS']
+tags: ['CSS', 'JavaScript', 'React', 'interview', 'project']
 draft: false
 summary: Github 프로필 검색 
 ---
@@ -10,7 +10,7 @@ summary: Github 프로필 검색
 
 로직: **state**를 이용하여 `input`값을 받고, `form`을 제출하여 데이터를 불러오는 것이다. 프로필 생성 날짜는 문자열로 오기 때문에, 이를 `Date`객체로 변환하고 `toLocaleDateString`메서드를 사용하여 표기 방식을 바꿨다. (**ChatGPT**가 알려줬다.)
 
-[Github Profile Finder](https://github.com/Valentin1495/React-Projects-for-Interview/tree/main/src/components/Github-Profile-FInder)
+[Github Profile Finder](https://coding-interview-prep.vercel.app/github-profile-finder)
 
 ```tsx:src/components/Github-Profile-FInder/github-profile-finder.tsx
 import { FormEvent, useState } from 'react';
@@ -101,7 +101,7 @@ export default function GithubProfileFinder() {
         />
         <button
           type='submit'
-          className='submit-btn'
+          className='find-btn'
           disabled={loading || !input.trim()}
         >
           {loading ? 'Submitting...' : 'Submit'}
@@ -137,7 +137,7 @@ export default function GithubProfileFinder() {
 ```
 
 ```css:src/components/Github-Profile-FInder/github-profile-finder.css
-.submit-btn {
+.find-btn {
   color: white;
   background-color: black;
   padding: 6px 12px;
@@ -147,26 +147,12 @@ export default function GithubProfileFinder() {
   transition: opacity 150ms ease-in-out;
 }
 
-.submit-btn:hover {
+.find-btn:hover {
   opacity: 75%;
 }
 
-.submit-btn:disabled {
+.find-btn:disabled {
   pointer-events: none;
   opacity: 50%;
-}
-```
-
-```ts:src/components/Github-Profile-FInder/format-date.ts
-export function formatDate(dateString: string) {
-  const date = new Date(dateString);
-
-  // Specify the locale and options for the desired output
-  const formattedDate = date.toLocaleDateString('en-US', {
-    month: 'long', // Full name of the month
-    year: 'numeric', // Numeric value of the year
-  });
-
-  return formattedDate;
 }
 ```

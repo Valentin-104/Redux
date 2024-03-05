@@ -1,7 +1,7 @@
 ---
 title: Custom Hook - useOnClickOutside
-date: '2024-02-21'
-tags: ['project', 'React', 'interview', 'JavaScript', 'custom hook', 'hook']
+date: '2024-03-02'
+tags: ['JavaScript', 'React', 'interview', 'project', 'custom hook', 'hook']
 draft: false
 summary: 특정 섹션의 외부를 클릭할 시 호출되는 커스텀 훅
 ---
@@ -10,7 +10,7 @@ summary: 특정 섹션의 외부를 클릭할 시 호출되는 커스텀 훅
 
 로직: **useRef**를 호출하여 내부 섹션의 `ref`속성에 걸고, `contains`메서드와 **mousedown event**의 **target**을 활용한다. (**ChatGPT**의 도움을 받았다.)
 
-[custom hooks](https://github.com/Valentin1495/React-Projects-for-Interview/tree/main/src/hooks)
+[hook test](https://coding-interview-prep.vercel.app/use-on-click-outside)
 
 ```ts:src/hooks/use-on-click-outside.ts
 import { useEffect, useRef, useState } from 'react';
@@ -36,18 +36,16 @@ export function useOnClickOutside() {
 }
 ```
 
-[hook test](https://github.com/Valentin1495/React-Projects-for-Interview/tree/main/src/components/Use-On-Click-Outside)
-
-```tsx:src/components/Use-On-Click-Outside/test-hook.tsx
+```tsx:src/components/Use-On-Click-Outside/test-hook-2.tsx
 import { useOnClickOutside } from '../../hooks/use-on-click-outside';
 
-export default function TestHook() {
+export default function TestHook2() {
   const { open, setOpen, ref } = useOnClickOutside();
 
   return (
     <div
       style={{
-        height: '100vh',
+        minHeight: '100vh',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -58,17 +56,12 @@ export default function TestHook() {
           ref={ref}
           style={{
             backgroundColor: 'rgba(0,0,0,0.1)',
-            width: '50%',
-            height: '50%',
+            width: '400px',
+            height: '400px',
           }}
         ></div>
       ) : (
-        <button
-          style={{
-            cursor: 'pointer',
-          }}
-          onClick={() => setOpen(true)}
-        >
+        <button className='btn' onClick={() => setOpen(true)}>
           Open
         </button>
       )}

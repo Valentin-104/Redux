@@ -18,10 +18,10 @@ const projectsData = [
     href: '/blog/projects/NFT-Trade-Shop',
   },
   {
-    title: 'React Projects for Interview',
+    title: 'Coding Interview Prep',
     description: `과제 대비 React 프로젝트`,
     imgSrc: '/static/images/interview.jpg',
-    href: '/blog/projects/React-Projects-for-Interview',
+    href: '/blog/projects/Coding-Interview-Prep',
   },
   // {
   //   title: 'AIWanderlust',

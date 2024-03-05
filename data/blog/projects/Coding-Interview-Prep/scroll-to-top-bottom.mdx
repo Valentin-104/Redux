@@ -1,7 +1,7 @@
 ---
 title: Scroll to Top/Bottom
-date: '2024-02-18'
-tags: ['project', 'React', 'interview', 'JavaScript', 'CSS', 'hook']
+date: '2024-02-22'
+tags: ['CSS', 'JavaScript', 'React', 'interview', 'project', 'window', 'hook']
 draft: false
 summary: 최상단/최하단 스크롤
 ---
@@ -10,11 +10,10 @@ summary: 최상단/최하단 스크롤
 
 로직: 최상단으로 스크롤하는 경우, **window 객체**를 이용한다. 최하단으로 스크롤하는 경우, **useRef**를 호출하여 이를 최하단 빈 `<div>`의의 `ref`속성에 걸어주고, `scrollIntoView`메서드를 활용한다.
 
-[Scroll to Top/Bottom](https://github.com/Valentin1495/React-Projects-for-Interview/tree/main/src/components/Scroll-Top-Bottom)
+[Scroll to Top/Bottom](https://coding-interview-prep.vercel.app/scroll-to-top-bottom)
 
 ```tsx:src/components/Scroll-Top-Bottom/scroll-top-bottom.tsx
 import { useEffect, useRef, useState } from 'react';
-import './styles.css';
 
 type Album = {
   id: number;
@@ -44,7 +43,7 @@ export default function ScrollTopBottom() {
       try {
         setLoading(true);
         const response = await fetch(
-          import.meta.env.VITE_JSON_PLACEHOLDER_API_URL + '/albums'
+          'https://jsonplaceholder.typicode.com/albums'
         );
 
         const data = await response.json();
@@ -65,36 +64,26 @@ export default function ScrollTopBottom() {
     <div
       style={{
         padding: '50px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 20,
       }}
     >
-      <button className='scroll-btn' onClick={scrollToBottom}>
+      <button className='btn' onClick={scrollToBottom}>
         Scroll to bottom
       </button>
+
       {albums.map(({ id, title }) => (
         <p key={id}>{title}</p>
       ))}
-      <button className='scroll-btn' onClick={scrollToTop}>
+
+      <button className='btn' onClick={scrollToTop}>
         Scroll to top
       </button>
+
       <div ref={ref}></div>
     </div>
   );
-}
-```
-
-```css:src/components/Scroll-Top-Bottom/styles.css
-.scroll-btn {
-  cursor: pointer;
-  background-color: black;
-  color: white;
-  font-weight: bold;
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-size: 1.1rem;
-  transition: opacity 150ms ease-in-out;
-}
-
-.scroll-btn:hover {
-  opacity: 80%;
 }
 ```

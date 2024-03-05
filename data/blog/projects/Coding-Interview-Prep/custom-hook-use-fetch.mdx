@@ -1,14 +1,14 @@
 ---
 title: Custom Hook - useFetch
-date: '2024-02-20'
-tags: ['project', 'React', 'interview', 'JavaScript', 'custom hook']
+date: '2024-02-28'
+tags: ['JavaScript', 'React', 'interview', 'project', 'custom hook']
 draft: false
 summary: 데이터를 불러오는 커스텀 훅
 ---
 
 데이터를 불러올 때 전체적인 패턴은 같고 API url만 바뀌기 때문에, url을 매개변수로 한 **커스텀 훅**을 만들었다.
 
-[custom hooks](https://github.com/Valentin1495/React-Projects-for-Interview/tree/main/src/hooks)
+[hook test](https://coding-interview-prep.vercel.app/use-fetch)
 
 ```ts:src/hooks/use-fetch.ts
 import { useEffect, useState } from 'react';
@@ -44,20 +44,25 @@ export function useFetch(url: string) {
 }
 ```
 
-[hook test](https://github.com/Valentin1495/React-Projects-for-Interview/tree/main/src/components/Use-Fetch)
-
-```tsx:src/components/Use-Fetch/test-hook.tsx
+```tsx:src/components/Use-Fetch/test-hook-1.tsx
 import { useFetch } from '../../hooks/use-fetch';
 
-export default function TestHook() {
+export default function TestHook1() {
   const { loading, error, data } = useFetch(
-    import.meta.env.VITE_JSON_PLACEHOLDER_API_URL + '/todos'
+    'https://jsonplaceholder.typicode.com/todos'
   );
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>{error}</p>;
   return (
-    <div>
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        padding: '20px',
+      }}
+    >
       {data.map((el) => (
         <p key={el.id}>{el.title}</p>
       ))}

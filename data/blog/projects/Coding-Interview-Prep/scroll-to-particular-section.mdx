@@ -1,7 +1,7 @@
 ---
 title: Scroll to Particular Section
-date: '2024-02-19'
-tags: ['project', 'React', 'interview', 'JavaScript', 'CSS', 'hook']
+date: '2024-02-25'
+tags: ['CSS', 'JavaScript', 'React', 'interview', 'project', 'window', 'hook']
 draft: false
 summary: 특정 섹션으로 스크롤
 ---
@@ -10,7 +10,7 @@ summary: 특정 섹션으로 스크롤
 
 로직: 1. **useRef**를 호출하여 특정 섹션에 `ref`를 걸어 그 섹션의 상단 위치를 파악한다. 2. **window 객체**를 활용하여 그 위치로 스크롤한다.
 
-[Scroll to Particular Section](https://github.com/Valentin1495/React-Projects-for-Interview/tree/main/src/components/Scroll)
+[Scroll to Particular Section](https://coding-interview-prep.vercel.app/scroll-to-particular-section)
 
 ```tsx:src/components/Scroll/scroll.tsx
 import { useRef } from 'react';
@@ -51,16 +51,24 @@ export default function Scroll() {
   };
 
   return (
-    <div
-      style={{
-        paddingTop: '50px',
-      }}
-    >
-      <button className='btn' onClick={scroll}>
-        Scroll to Third section
-      </button>
+    <div>
+      <div
+        style={{
+          textAlign: 'center',
+          padding: '50px 0',
+        }}
+      >
+        <button className='btn' onClick={scroll}>
+          Scroll to Third section
+        </button>
+      </div>
+
       {sections.map(({ label, className }, idx) => (
-        <section key={idx} className={className} ref={idx === 2 ? ref : null}>
+        <section
+          key={idx}
+          className={`${className} section`}
+          ref={idx === 2 ? ref : null}
+        >
           {label}
         </section>
       ))}
@@ -70,26 +78,10 @@ export default function Scroll() {
 ```
 
 ```css:src/components/Scroll/scroll.css
-section {
+.section {
   height: 600px;
   font-size: 2rem;
   font-weight: bold;
-}
-
-.btn {
-  cursor: pointer;
-  background-color: black;
-  color: white;
-  font-weight: bold;
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-size: 1.1rem;
-  transition: opacity 150ms ease-in-out;
-  margin-bottom: 50px;
-}
-
-.btn:hover {
-  opacity: 80%;
 }
 
 .first-section {

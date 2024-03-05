@@ -1,7 +1,7 @@
 ---
 title: Search Autocomplete
 date: '2024-01-29'
-tags: ['project', 'React', 'interview', 'JavaScript', 'CSS']
+tags: ['CSS', 'JavaScript', 'React', 'interview', 'project']
 draft: false
 summary: 검색 자동 완성
 ---
@@ -10,7 +10,7 @@ summary: 검색 자동 완성
 
 로직: `input`에 입력한 값을 `query`라는 **state**로 설정하고, 모든 검색 결과인 `emailList`를 이 `query`로 **filter**한다. 이 때 같은 `query`에 대한 **filter**함수의 결괏값을 기억하기 위해 `useMemo`를 사용했다.
 
-[Search Autocomplete](https://github.com/Valentin1495/React-Projects-for-Interview/tree/main/src/components/Search-Filter)
+[Search Autocomplete](https://coding-interview-prep.vercel.app/search-filter)
 
 ```tsx:src/components/Search-Filter/search-filter.tsx
 import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from 'react';
@@ -34,7 +34,7 @@ export default function SearchFilter() {
       try {
         setLoading(true);
         const response = await fetch(
-          import.meta.env.VITE_JSON_PLACEHOLDER_API_URL + '/comments'
+          'https://jsonplaceholder.typicode.com/comments'
         );
 
         const data: Email[] = await response.json();
@@ -103,7 +103,7 @@ export default function SearchFilter() {
           value={query}
           onChange={handleChange}
         />
-        <button type='submit' className='submit-btn' disabled={!query.trim()}>
+        <button type='submit' className='search-btn' disabled={!query.trim()}>
           <Search color='black' size={20} strokeWidth={1.5} />
         </button>
       </form>
@@ -114,7 +114,6 @@ export default function SearchFilter() {
             display: selected ? 'none' : 'flex',
             flexDirection: 'column',
             boxShadow: '0px 0px 8px rgba(0, 0, 0, 0.25)',
-
             margin: '10px auto',
             borderRadius: '10px',
             padding: '10px 0px',
@@ -148,7 +147,7 @@ export default function SearchFilter() {
 ```
 
 ```css:src/components/Search-Filter/search-filter.css
-.submit-btn {
+.search-btn {
   all: unset;
   padding: 10px 20px;
   cursor: pointer;
@@ -161,11 +160,11 @@ export default function SearchFilter() {
   align-items: center;
 }
 
-.submit-btn:hover {
+.search-btn:hover {
   background-color: rgba(211, 211, 211, 0.344);
 }
 
-.submit-btn:disabled {
+.search-btn:disabled {
   pointer-events: none;
 }
 

@@ -1,7 +1,7 @@
 ---
 title: Dialog
 date: '2024-01-23'
-tags: ['project', 'React', 'interview', 'JavaScript', 'CSS']
+tags: ['CSS', 'JavaScript', 'React', 'interview', 'project']
 draft: false
 summary: Dialog UI
 ---
@@ -10,7 +10,7 @@ summary: Dialog UI
 
 로직: dialog가 열렸는지 닫혔는지를 `open`이라는 **state**로 설정한다. 이는 boolean으로서, open 버튼을 클릭하면 true로 변경되어 dialog가 나타나고, 오버레이나 close 버튼을 누르면 false가 되어 dialog가 사라진다. 애니메이션을 추가하기 위해 `animation`속성과 `@keyframes` rule을 이용했다.
 
-[Dialog](https://github.com/Valentin1495/React-Projects-for-Interview/tree/main/src/components/Dialog)
+[Dialog](https://coding-interview-prep.vercel.app/dialog)
 
 ```tsx:src/components/Dialog/dialog.tsx
 import { useState } from 'react';
@@ -28,7 +28,7 @@ export default function Dialog() {
   return (
     <div
       style={{
-        height: '100vh',
+        minHeight: '100vh',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -60,6 +60,7 @@ export default function Dialog() {
             }}
           >
             <h3>Are you absolutely sure?</h3>
+
             <p
               style={{
                 fontSize: '0.9rem',
@@ -68,17 +69,17 @@ export default function Dialog() {
               This action cannot be undone. This will permanently delete your
               account and remove your data from our servers.
             </p>
+
             <article
               style={{
                 textAlign: 'right',
+                marginTop: '20px',
               }}
             >
               <button className='dialog-left-btn' onClick={closeDialog}>
                 Cancel
               </button>
-              <button className='dialog-right-btn' onClick={closeDialog}>
-                Continue
-              </button>
+              <button className='dialog-right-btn'>Continue</button>
             </article>
           </section>
         </div>

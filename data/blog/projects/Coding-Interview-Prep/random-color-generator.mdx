@@ -1,7 +1,7 @@
 ---
 title: Random Color Generator
 date: '2024-01-09'
-tags: ['project', 'React', 'interview', 'JavaScript', 'CSS']
+tags: ['CSS', 'JavaScript', 'React', 'interview', 'project']
 draft: false
 summary: 랜덤 색상 생성
 ---
@@ -16,7 +16,7 @@ hex의 경우, 0부터 9까지의 숫자와 a부터 f까지의 알파벳 조합�
 
 rgb의 경우, 0부터 255까지의 자연수 3개의 조합으로 이루어진다. 따라서 `getRandomNumber`를 3번 실행하면 된다. 이것이 함수 `changeRGBcolor`다.
 
-[Random Color Generator](https://github.com/Valentin1495/React-Projects-for-Interview/blob/main/src/components/Random-Color-Generator)
+[Random Color Generator](hhttps://coding-interview-prep.vercel.app/random-color-generator)
 
 ```tsx:src/components/Random-Color-Generator/random-color-generator.tsx
 import { useState } from 'react';
@@ -78,7 +78,7 @@ export default function RandomColorGenerator() {
   return (
     <div
       style={{
-        height: '100vh',
+        minHeight: '100vh',
         backgroundColor: color,
       }}
     >
@@ -90,14 +90,26 @@ export default function RandomColorGenerator() {
           justifyContent: 'center',
         }}
       >
-        <button onClick={selectHex}>Hex color</button>
-        <button onClick={selectRGB}>RGB color</button>
-        <button onClick={type === 'hex' ? changeHexColor : changeRGBcolor}>
+        <button className='btn' onClick={selectHex}>
+          Hex color
+        </button>
+        <button className='btn' onClick={selectRGB}>
+          RGB color
+        </button>
+        <button
+          className='btn'
+          onClick={type === 'hex' ? changeHexColor : changeRGBcolor}
+        >
           Create random color
         </button>
       </section>
 
-      <section>
+      <section
+        style={{
+          textAlign: 'center',
+          marginTop: '200px',
+        }}
+      >
         <h1>{type}</h1>
         <h2>{color}</h2>
       </section>
