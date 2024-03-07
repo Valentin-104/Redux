@@ -1,0 +1,25 @@
+---
+title: Rewrites for Client-Side Routing
+date: '2024-03-06'
+tags: ['JavaScript', 'React', 'interview', 'project', 'Vercel', 'React Router']
+draft: false
+summary: Vercel에 SPA 배포 시 발생하는 클라이언트 사이드 라우팅 문제 해결
+---
+
+[과제 대비 React 프로젝트](/blog/projects/Coding-Interview-Prep)를 만들어 Vercel에 배포했다. 배포는 아무 문제 없이 잘 되었고, 당연히 웹사이트도 잘 돌아갈 줄 알았는데, 문제가 생겼다. 홈페이지는 잘 되는데, 내가 *동적 루트*로 설정해놓은 페이지들은 *404 not found* 에러가 떴다.
+
+좀 기다리면 되려나 싶어서 이따가 다시 시도해봤지만 똑같았다. 그래서 결국 **ChatGPT**에게 물어보았고, 정확한 해답을 주었다. 
+
+> Vercel은 정적 파일을 제공하며 서버가 기본적으로 SPA 라우팅을 처리하도록 설정되어 있지 않기 때문에, 해당 라우트에 대응하는 정적 파일을 찾지 못하고 404 오류를 반환합니다. 
+>
+> Next.js 애플리케이션의 경우, 동적 라우팅은 자동으로 처리되지만, create-react-app, Vue 또는 다른 프레임워크로 구축된 SPA의 경우, 프로젝트 루트에 rewrite 규칙을 포함한 설정 파일(vercel.json)을 추가해야 합니다.
+
+Next.js 앱이 아니라 **SPA**인 **Vite** 앱이기 때문에 문제가 생겼던 것이다. AI가 알려준대로 `vercel.json`파일을 만들어서 다시 배포하니, 해결되었다.
+
+```json:vercel.json
+{
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
+```
