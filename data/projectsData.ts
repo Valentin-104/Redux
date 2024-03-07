@@ -1,7 +1,7 @@
 const projectsData = [
   {
     title: 'Gemini',
-    description: `The best AI tool for chatbot/image generation`,
+    description: `Chat with Gemini and generate images from Karlo`,
     imgSrc: '/static/images/openai.jpg',
     href: '/blog/projects/Gemini',
   },
