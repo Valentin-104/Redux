@@ -1,0 +1,51 @@
+---
+title: useRef vs useState
+date: '2024-03-03'
+tags: ['HTML', 'JavaScript', 'React', 'hook', 'DOM', 'interview']
+draft: false
+summary: useRef와 useState의 차이
+---
+
+`useRef`는 React의 Hook 중 하나로, 컴포넌트에서 특정 DOM 요소에 직접 접근하고자 할 때 사용된다. 그러나 이것이 `useRef`의 유일한 용도는 아니며, 렌더링 간에 값을 "기억"하는 데에도 사용될 수 있다. `useRef`는 `.current` 속성을 통해 전달된 초기값을 가진 변경 가능한(ref object) 객체를 반환한다. 이 객체는 컴포넌트의 전 생애주기 동안 유지되며, `.current` 속성의 값이 변경되더라도 컴포넌트가 리렌더링되지 않는 것이 특징이다.
+
+`useState`와의 주요 차이점은 다음과 같다:
+- `useState`를 사용한 상태가 변경될 때마다 컴포넌트가 리렌더링된다. 반면, `useRef`로 생성된 객체의 `.current` 속성을 변경해도 컴포넌트의 리렌더링은 발생하지 않는다.
+- `useRef`는 동일한 ref 객체를 컴포넌트의 재렌더링 간에 유지한다. 따라서, 이를 통해 컴포넌트의 여러 렌더링에 걸쳐 데이터를 유지할 수 있다.
+
+`useRef`의 사용 예시는 다음과 같다:
+
+1. **DOM 요소에 접근하기**: `useRef`를 사용해 생성된 ref 객체를 요소의 `ref` 속성에 할당함으로써, 해당 요소에 대한 직접적인 접근이 가능하다.
+   ```jsx
+   function TextInputWithFocusButton() {
+     const inputEl = useRef(null);
+     const onButtonClick = () => {
+       // `current` 속성을 통해 직접 DOM 요소에 접근하고, focus를 준다.
+       inputEl.current.focus();
+     };
+     return (
+       <>
+         <input ref={inputEl} type="text" />
+         <button onClick={onButtonClick}>Focus the input</button>
+       </>
+     );
+   }
+   ```
+
+2. **렌더링 간에 데이터 저장하기**: `useRef`는 렌더링 간에 데이터를 저장하는 용도로 사용될 수 있다. 이 때 변경된 값은 리렌더링을 유발하지 않는다.
+   ```jsx
+   function TimerComponent() {
+     const intervalRef = useRef();
+     
+     useEffect(() => {
+       const id = setInterval(() => {
+         // do something
+       }, 1000);
+       intervalRef.current = id;
+       return () => clearInterval(intervalRef.current);
+     }, []);
+     
+     // interval ID를 렌더링 사이에 유지할 수 있다.
+   }
+   ```
+
+`useRef`는 컴포넌트 내에서 직접적인 DOM 조작이 필요하거나, 렌더링에 영향을 주지 않으면서 데이터를 저장해야 할 때 유용하게 사용된다. 반면, 컴포넌트의 상태 관리와 관련된 로직에는 `useState`나 다른 상태 관리 Hook이 더 적합하다.
