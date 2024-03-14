@@ -2,9 +2,9 @@
 
 /** @type {import("pliny/config").PlinyConfig } */
 const siteMetadata = {
-  title: 'Noah',
-  author: '노아',
-  headerTitle: 'Noah',
+  title: 'Roahn',
+  author: '로안',
+  headerTitle: 'Roahn',
   description: 'I love building for the web. From something as simple as a single HTML file – all the way to large Next.js applications.',
   language: 'en-us',
   theme: 'system', // system, dark or light
@@ -14,9 +14,9 @@ const siteMetadata = {
   image: '/static/images/avatar.JPEG',
   socialBanner: '/static/images/logo.png',
   email: 'valentink1495@gmail.com',
-  twitter: 'https://twitter.com/Noah_Han14',
+  twitter: 'https://twitter.com/RoahnKim',
   github: 'https://github.com/Valentin1495',
-  // instagram: 'https://instagram.com/noah.han14',
+  // instagram: 'https://instagram.com/',
   locale: 'en-US',
   analytics: {
     // If you want to use an analytics provider you have to add it to the
