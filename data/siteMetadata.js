@@ -2,10 +2,10 @@
 
 /** @type {import("pliny/config").PlinyConfig } */
 const siteMetadata = {
-  title: 'Roahn',
-  author: '로안',
-  headerTitle: 'Roahn',
-  description: 'I love building for the web. From something as simple as a single HTML file – all the way to large Next.js applications.',
+  title: "Youan's blog",
+  author: '유안',
+  headerTitle: "Youan's blog",
+  description: 'Welcome to my personal blog 😍',
   language: 'en-us',
   theme: 'system', // system, dark or light
   siteUrl: 'https://tailwind-nextjs-starter-blog.vercel.app',
@@ -14,7 +14,7 @@ const siteMetadata = {
   image: '/static/images/avatar.JPEG',
   socialBanner: '/static/images/logo.png',
   email: 'valentink1495@gmail.com',
-  twitter: 'https://twitter.com/RoahnKim',
+  twitter: 'https://twitter.com/Youan_Kim',
   github: 'https://github.com/Valentin1495',
   // instagram: 'https://instagram.com/',
   locale: 'en-US',
