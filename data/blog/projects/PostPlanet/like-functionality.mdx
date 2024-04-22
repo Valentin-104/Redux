@@ -1,0 +1,140 @@
+---
+title: Like Functionality
+date: '2024-04-07'
+tags: ['project', 'Next.js', 'server actions', 'PostPlanet', 'hook', 'custom hook']
+draft: false
+summary: 서버 액션 & useOptimistic 훅을 활용한 좋아요 기능
+---
+
+- 좋아요 기능을 하는 서버 액션. 이를 사용하면 기능이 정상적으로 작동하기는 하지만, UX상 좋지 않다. 왜냐하면, 좋아요를 하기 위해 하트를 누르면, 바로 하트가 채워지고 좋아요 수가 올라가야 하는데, 서버 액션은 서버 응답 시간이 필요하기 때문에 그럴 수가 없다.
+
+    ```ts:actions/post.actions.ts
+    export async function likePost(postId: string, userId: string) {
+      const { likedIds, authorId, text } = (await readPost(postId)) as Post;
+    
+      likedIds.push(userId);
+    
+      try {
+        await db.post.update({
+          where: {
+            id: postId,
+          },
+          data: {
+            likedIds,
+          },
+        });
+    
+        revalidatePath('/', 'layout');
+      } catch (error: any) {
+        throw new Error(error);
+      }
+    
+      try {
+        await db.activity.create({
+          data: {
+            type: 'like',
+            postId,
+            text,
+            giverId: userId,
+            receiverId: authorId,
+          },
+        });
+      } catch (error: any) {
+        throw new Error(error);
+      }
+    }
+    ```
+
+- 이를 해결하기 위해 [Next.js 문서](https://nextjs.org/docs/app/building-your-application/data-fetching/server-actions-and-mutations#optimistic-updates)와 [Youtube](https://www.youtube.com/watch?v=wg3xQogkZDA)를 보고 `useOptimistic` 훅에 대해 알아보았다. 훅을 적용해보니 같은 로직과 코드가 반복되어, 이를 커스텀 훅으로 만들기로 하였다.
+
+    ```ts:hooks/use-toggle-like.ts
+    import { likePost, unlikePost } from '@/actions/post.actions';
+    import { startTransition, useOptimistic } from 'react';
+
+    export function useToggleLike(
+      likes: number,
+      postId: string,
+      userId: string,
+      hasLiked?: boolean
+    ) {
+      const [optimisticLikes, updateOptimisticLikes] = useOptimistic(
+        likes,
+        (state, amount) => state! + Number(amount)
+      );
+      const [optimisticHasLiked, updateOptimisticHasLiked] = useOptimistic(
+        hasLiked,
+        (state, _) => !state
+      );
+
+      const toggleLike = async () => {
+        if (optimisticHasLiked) {
+          startTransition(() => {
+            updateOptimisticLikes(-1);
+            updateOptimisticHasLiked(false);
+          });
+          await unlikePost(postId, userId);
+        } else {
+          startTransition(() => {
+            updateOptimisticLikes(1);
+            updateOptimisticHasLiked(true);
+          });
+          await likePost(postId, userId);
+        }
+      };
+
+      return {
+        optimisticLikes,
+        optimisticHasLiked,
+        toggleLike,
+      };
+    }
+    ```
+
+- 커스텀 훅 `useToggleLike`은  `optimisticLikes`, `optimisticHasLiked`, `toggleLike`를 리턴하고, 이를 사용하여 기존의 코드를 리팩토링하였다. 이로서 좋아요를 하자마자 바로 UI가 업데이트되는 **optimistic updates**를 구현할 수 있었다.
+
+    ```tsx:components/client-post.tsx
+    'use client';
+
+    export default function ClientPost({
+      id,
+      likedIds,
+      currentUserId,
+      hasLiked,
+    }: ClientPostProps) {
+      const likes = likedIds.length;
+      const { optimisticHasLiked, optimisticLikes, toggleLike } = useToggleLike(
+        likes,
+        id,
+        currentUserId,
+        hasLiked
+      );
+
+      return (  
+          <section
+            className='flex items-center -space-x-1 group w-fit absolute top-1/2 -translate-y-1/2 left-1/4'
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleLike();
+            }}
+          >
+            <section className='rounded-full p-2 group-hover:bg-rose-700/10 transition'>
+              {optimisticHasLiked ? (
+                <FilledHeart filledHeartProps='w-[18px] h-[18px] text-rose-700' />
+              ) : (
+                <Heart heartProps='w-[18px] h-[18px] text-slate-400 group-hover:text-rose-700 transition' />
+              )}
+            </section>
+            <span
+              className={cn(
+                optimisticHasLiked
+                  ? 'text-rose-700'
+                  : 'group-hover:text-rose-700 transition',
+                'text-sm font-medium'
+              )}
+            >
+              {optimisticLikes ? optimisticLikes : null}
+            </span>
+          </section>
+      );
+    }
+    ```

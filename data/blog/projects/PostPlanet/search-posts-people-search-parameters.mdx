@@ -1,0 +1,125 @@
+---
+title: Search Posts/People - Search Parameters
+date: '2024-04-15'
+tags: ['project', 'Next.js', 'server actions', 'PostPlanet']
+draft: false
+summary: 게시물/사용자 검색
+---
+
+- 게시물과 사용자를 따로 검색할 수 있다. **search parameter**로 둘을 구분하였다. 검색어는 **q=검색어**, 사용자 검색 시 **f=user**라는 searchParams가 붙는다.
+
+    ```tsx:components/search-bar.tsx
+    'use client';
+
+    import { useRouter, useSearchParams } from 'next/navigation';
+    import { useState } from 'react';
+
+    export default function SearchBar() {
+      const [searchQuery, setSearchQuery] = useState<string>('');
+      const [preventBlur, setPreventBlur] = useState<boolean>(false);
+      const router = useRouter();
+      const searchParams = useSearchParams();
+      const filter = searchParams.get('f');
+
+      return (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (!searchQuery.trim()) return;
+            router.push(
+              filter
+                ? `/search?q=${searchQuery}&f=user`
+                : `/search?q=${searchQuery}`
+            );
+          }}
+        >
+          <input
+            placeholder='Search'
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </form>
+      );
+    }
+    ```
+
+- searchParams f가 user일 경우 사용자 검색이기 때문에 `searchPeople`을 호출하고, f가 존재하지 않을 경우 게시물 검색이기 때문에 `searchPosts`를 호출한다.
+
+    ```tsx:app/(root)/search/page.tsx
+    import { searchPeople } from '@/actions/user.actions';
+    import { Post as SinglePost } from '@prisma/client';
+    import { searchPosts } from '@/actions/post.actions';
+    import Post from '@/components/post';
+    import SearchTabs from '@/components/search-tabs';
+    import SearchBar from '@/components/search-bar';
+
+    type SearchProps = {
+      searchParams: {
+        q?: string;
+        f?: string;
+      };
+    };
+
+    export default async function Search({ searchParams }: SearchProps) {
+      const { q, f } = searchParams;
+      let searchResults;
+
+      if (f === 'user') {
+        searchResults = (await searchPeople(q as string)) as User[];
+
+        return (
+          <main className='min-h-screen'>
+            <div className='bg-background z-10 sticky top-0 pt-5'>
+              <SearchBar />
+              <SearchTabs q={q as string} f={f} />
+            </div>
+            {searchResults.length ? (
+              searchResults.map((user) => (
+                <SingleUser
+                  key={user.id}
+                  {...user}
+                  currentUserId={currentUserId}
+                  myFollowingIds={followingIds}
+                />
+              ))
+            ) : (
+              <p className='text-center mt-10 text-lg'>No results.</p>
+            )}
+          </main>
+        );
+      }
+
+      if (q) {
+        searchResults = (await searchPosts(q)) as SinglePost[];
+
+        return (
+          <main className='min-h-screen'>
+            <div className='bg-background z-10 sticky top-0 pt-5'>
+              <SearchBar />
+              <SearchTabs q={q} f={f} />
+            </div>
+            {searchResults.length ? (
+              searchResults.map((post) => (
+                <Post
+                  key={post.id}
+                  {...post}
+                  currentUserId={currentUserId}
+                  myProfilePic={profileImage}
+                  myFollowingIds={followingIds}
+                />
+              ))
+            ) : (
+              <p className='text-center mt-10 text-lg'>No results.</p>
+            )}
+          </main>
+        );
+      }
+
+      return (
+        <main className='min-h-screen'>
+          <div className='bg-background pt-5'>
+            <SearchBar />
+          </div>
+        </main>
+      );
+    }

@@ -1,0 +1,80 @@
+---
+title: Authentication Using Clerk
+date: '2024-04-19'
+tags: ['project', 'Auth', 'OAuth', 'PostPlanet']
+draft: false
+summary: Clerk을 활용한 회원 인증
+---
+
+1. Clerk 설치 => `npm i @clerk/nextjs`
+
+2. RootLayout을 `ClerkProvider`로 감싸준다.
+
+```tsx:app/(root)/layout.tsx
+import { ClerkProvider } from '@clerk/nextjs';
+import { Toaster } from '@/components/ui/sonner';
+
+export default async function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <ClerkProvider>
+      <html lang='en'>
+        <body className={inter.className}>
+          <div className='flex items-start max-w-3xl lg:max-w-6xl xl:max-w-7xl mx-auto lg:pr-8 xl:px-5'>
+            <div className='w-full border-l sm:border-r'>{children}</div>
+          </div>
+          <Toaster />
+        </body>
+      </html>
+    </ClerkProvider>
+  );
+}
+```
+
+3. env 파일을 작성한다.
+
+```
+NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in // 로그인 페이지
+NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up // 회원가입 페이지
+NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/onboarding // 로그인 후 리다이렉트되는 페이지
+NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/onboarding // 회원가입 후 리다이렉트되는 페이지
+```
+
+4. 미들웨어를 작성한다.
+
+```ts:middleware.ts
+// Resource: https://clerk.com/docs/nextjs/middleware#auth-middleware
+// Copy the middleware code as it is from the above resource
+
+import { authMiddleware, redirectToSignIn } from '@clerk/nextjs';
+import { NextResponse } from 'next/server';
+
+export default authMiddleware({
+  afterAuth(auth, req) {
+    // 사용자가 로그인을 하고 '/onboarding' 외에 다른 path에 접근하면 다시 리다이렉트한다.
+    if (auth.userId && req.nextUrl.pathname === '/') {
+      const onboarding = new URL('/onboarding', req.url);
+      return NextResponse.redirect(onboarding);
+    }
+
+    // 사용자가 로그인을 하지 않으면 로그인 페이지로 리다이렉트한다.
+    if (!auth.userId && !auth.isPublicRoute) {
+      return redirectToSignIn({ returnBackUrl: req.url });
+    }
+  },
+  // 로그인이 필요하지 않은 public routes
+  publicRoutes: ['/api/uploadthing'],
+
+  // 미들웨어가 적용되지 않는 routes
+  ignoredRoutes: [],
+});
+
+export const config = {
+  matcher: ['/((?!.*\\..*|_next).*)', '/', '/(api|trpc)(.*)'],
+};
+```
+
+5. `currentUser()`라는 helper 함수를 호출하면 현재 로그인한 사용자를 리턴한다.

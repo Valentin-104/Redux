@@ -1,13 +1,19 @@
 const projectsData = [
   {
+  title: 'PostPlanet',
+  description: `소셜 미디어 플랫폼`,
+  imgSrc: '/static/images/postplanet.jpg',
+  href: '/blog/projects/PostPlanet',
+  },
+  {
     title: 'Gemini',
-    description: `Chat with Gemini and generate images from Karlo`,
+    description: `AI를 활용한 챗/이미지 생성 앱`,
     imgSrc: '/static/images/openai.jpg',
     href: '/blog/projects/Gemini',
   },
   {
     title: 'NYTimes',
-    description: `Comprehensive up-to-date news coverage, aggregated by New York Times API`,
+    description: `뉴욕타임스 API를 활용한 라이브 뉴스 앱`,
     imgSrc: '/static/images/new-york-times.jpg',
     href: '/blog/projects/NYTimes',
   },
@@ -23,18 +29,7 @@ const projectsData = [
     imgSrc: '/static/images/interview.jpg',
     href: '/blog/projects/Coding-Interview-Prep',
   },
-  // {
-  //   title: 'AIWanderlust',
-  //   description: `AI-Powered Travel Itinerary Planner`,
-  //   imgSrc: '/static/images/AI.jpg',
-  //   href: '/blog/projects/AIWanderlust',
-  // },
-  // {
-  //   title: 'Portfolio',
-  //   description: `My Portfolio`,
-  //   imgSrc: '/static/images/coding.jpg',
-  //   href: '/blog/projects/Portfolio',
-  // },
+
 ]
 
 export default projectsData

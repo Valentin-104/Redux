@@ -1,0 +1,51 @@
+---
+title: Fetch Posts - Search Parameter
+date: '2024-04-17'
+tags: ['project', 'Next.js', 'server actions', 'PostPlanet']
+draft: false
+summary: 모든 게시물/내가 팔로우하는 사람들의 게시물 조회
+---
+
+- For You 탭에서는 모든 게시물을, Following 탭에서는 내가 팔로우하는 사람들의 게시물을 볼 수 있다. 
+
+- For You의 path는 */home*, Following은 */home?f=following* 이다. **search parameter**를 기준으로 db를 다르게 쿼리했다.
+
+    ```tsx:app/(root)/home/page.tsx
+    import { readAllPosts, readFollowingPosts } from '@/actions/post.actions';
+    import { Post as SinglePost } from '@prisma/client';
+
+    type HomeProps = {
+        searchParams: {
+            f: string;
+        };
+    };
+
+    export default async function Home({ searchParams }: HomeProps) {
+    let posts;
+
+    const { f } = searchParams;
+    if (f === 'following') {
+        posts = (await readFollowingPosts(followingIds)) as SinglePost[];
+    } else {
+        posts = (await readAllPosts()) as SinglePost[];
+    }
+
+    return (
+        <main className='min-h-screen w-full'>
+        {posts.length ? (
+            posts.map((post) => (
+            <Post
+                {...post}
+                key={post.id}
+                currentUserId={onboardedUserId}
+                myProfilePic={profileImage}
+                myFollowingIds={followingIds}
+            />
+            ))
+        ) : (
+            <p className='text-center py-10'>No posts.</p>
+        )}
+        </main>
+    );
+    }
+    ```

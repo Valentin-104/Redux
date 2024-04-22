@@ -1,0 +1,78 @@
+---
+title: Reply Functionality
+date: '2024-04-09'
+tags: ['project', 'Next.js', 'server actions', 'PostPlanet']
+draft: false
+summary: 답글 달기
+---
+
+- 콘텐츠를 게시하는 것과 마찬가지로 컴포넌트 `<PostForm />`을 사용하지만, 서버 액션이 달라진다.
+
+    ```ts:actions/reply.action.ts
+    'use server';
+
+    import db from '@/lib/db';
+    import { revalidatePath } from 'next/cache';
+    import { readPost } from './post.actions';
+    import { Post } from '@prisma/client';
+
+    export async function replyToPost(
+      prevState: {
+        message: string;
+      },
+      formData: FormData
+    ) {
+      const image = formData.get('fileUrl') as string;
+      let text = formData.get('text') as string;
+      text = text.trim();
+      const userId = formData.get('userId') as string;
+
+      if (!text && !image)
+        return {
+          message: "There's nothing to reply 😢",
+        };
+
+      const postId = formData.get('postId') as string;
+      const { authorId, text: postText } = (await readPost(postId)) as Post;
+
+      try {
+        await db.reply.create({
+          data: {
+            text,
+            image,
+            author: {
+              connect: {
+                id: userId,
+              },
+            },
+            post: {
+              connect: {
+                id: postId,
+              },
+            },
+          },
+        });
+
+        await db.activity.create({
+          data: {
+            type: 'reply',
+            giverId: userId,
+            receiverId: authorId,
+            postId,
+            text: postText,
+          },
+        });
+
+        revalidatePath('/', 'layout');
+
+        return {
+          message: 'Success',
+        };
+      } catch (error: any) {
+        return {
+          message: 'Failed to reply 😢',
+        };
+      }
+    }
+
+    ```

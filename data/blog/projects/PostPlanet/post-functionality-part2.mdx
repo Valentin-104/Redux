@@ -1,0 +1,52 @@
+---
+title: Post Functionality - Part. 2
+date: '2024-04-11'
+tags: ['project', 'Next.js', 'server actions', 'PostPlanet']
+draft: false
+summary: 서버 액션을 활용한 텍스트 & 이미지 게시
+---
+
+- 만약 서버 액션이 성공하면 [revalidatePath](https://nextjs.org/docs/app/api-reference/functions/revalidatePath#revalidating-all-data)를 사용하여 모든 데이터를 revalidate하여, 실시간으로 UI가 변경될 수 있도록 하였다.
+
+    ```ts:actions/post.actions.ts
+    'use server';
+
+    import db from '@/lib/db';
+    import { revalidatePath } from 'next/cache';
+
+    export async function createPost(
+      prevState: {
+        message: string;
+      },
+      formData: FormData
+    ) {
+      const image = formData.get('fileUrl') as string;
+      let text = formData.get('text') as string;
+      text = text.trim();
+      const userId = formData.get('userId') as string;
+
+      try {
+        await db.post.create({
+          data: {
+            text,
+            image,
+            author: {
+              connect: {
+                id: userId,
+              },
+            },
+          },
+        });
+
+        revalidatePath('/', 'layout');
+
+        return {
+          message: 'Success',
+        };
+      } catch (error) {
+        return {
+          message: 'Failed to post 😢',
+        };
+      }
+    }
+    ```

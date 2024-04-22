@@ -1,0 +1,101 @@
+---
+title: Onboarding - Server Action & UploadThing - Part. 2
+date: '2024-04-13'
+tags: ['project', 'Next.js', 'server actions', 'PostPlanet']
+draft: false
+summary: 서버 액션에서 Zod를 활용한 데이터 검증
+---
+
+- Zod를 사용하여 각 필드에 대한 조건을 걸고, 이를 만족하지 못할 경우 관련된 에러 메시지를 리턴하도록 했다. 또한 db를 쿼리하여 같은 username이 있는지 확인한다.
+
+    ```ts:actions/user.actions.ts
+    'use server';
+    
+    import db from '@/lib/db';
+    import { z } from 'zod';
+    
+    const schema = z.object({
+      id: z.string().min(1, { message: 'Id must contain at least 1 character.' }),
+      username: z
+        .string()
+        .trim()
+        .min(1, { message: 'Username must contain at least 1 character.' }),
+      bio: z.string(),
+      name: z
+        .string()
+        .trim()
+        .min(1, { message: 'Name must contain at least 1 character.' }),
+      profileImage: z.string().min(1, {
+        message: 'Profile image url must contain at least 1 character.',
+      }),
+    });
+    
+    export async function createUser(
+      prevState: {
+        message: string;
+      },
+      formData: FormData
+    ) {
+      let username = formData.get('username') as string;
+      if (username.includes(' ')) {
+        username = username.replace(/ /g, '');
+      }
+    
+      let bio = formData.get('bio') as string;
+      bio = bio.trim();
+    
+      let name = formData.get('name') as string;
+      name = name.trim();
+      name = name.replace(/\s+/g, ' ');
+    
+      const profileImage = formData.get('fileUrl') as string;
+      const userId = formData.get('userId') as string;
+    
+      const parse = schema.safeParse({
+        id: userId,
+        username,
+        bio,
+        name,
+        profileImage,
+      });
+    
+      if (!parse.success) {
+        let message = '';
+        parse.error.issues.map((issue) => {
+          message += issue.message + '\n';
+        });
+        return {
+          message,
+        };
+      }
+    
+      const data = parse.data;
+      const userList = await db.user.findMany();
+      const sameUserList = userList.filter((el) => el.username === data.username);
+      if (sameUserList[0]) {
+        return {
+          message: 'That username has been taken.\nPlease choose another.',
+        };
+      }
+    
+      try {
+        await db.user.create({
+          data: {
+            id: data.id,
+            username: data.username,
+            name: data.name,
+            bio: data.bio,
+            profileImage: data.profileImage,
+          },
+        });
+    
+        return {
+          message: 'Onboarded.',
+        };
+      } catch (error) {
+        return {
+          message: 'Onboarding failed 😢',
+        };
+      }
+    }
+    ```
