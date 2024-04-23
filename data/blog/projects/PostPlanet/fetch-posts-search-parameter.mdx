@@ -10,42 +10,42 @@ summary: 모든 게시물/내가 팔로우하는 사람들의 게시물 조회
 
 - For You의 path는 */home*, Following은 */home?f=following* 이다. **search parameter**를 기준으로 db를 다르게 쿼리했다.
 
-    ```tsx:app/(root)/home/page.tsx
-    import { readAllPosts, readFollowingPosts } from '@/actions/post.actions';
-    import { Post as SinglePost } from '@prisma/client';
+```tsx:app/(root)/home/page.tsx
+import { readAllPosts, readFollowingPosts } from '@/actions/post.actions';
+import { Post as SinglePost } from '@prisma/client';
 
-    type HomeProps = {
-        searchParams: {
-            f: string;
-        };
+type HomeProps = {
+    searchParams: {
+        f: string;
     };
+};
 
-    export default async function Home({ searchParams }: HomeProps) {
-    let posts;
+export default async function Home({ searchParams }: HomeProps) {
+let posts;
 
-    const { f } = searchParams;
-    if (f === 'following') {
-        posts = (await readFollowingPosts(followingIds)) as SinglePost[];
-    } else {
-        posts = (await readAllPosts()) as SinglePost[];
-    }
+const { f } = searchParams;
+if (f === 'following') {
+    posts = (await readFollowingPosts(followingIds)) as SinglePost[];
+} else {
+    posts = (await readAllPosts()) as SinglePost[];
+}
 
-    return (
-        <main className='min-h-screen w-full'>
-        {posts.length ? (
-            posts.map((post) => (
-            <Post
-                {...post}
-                key={post.id}
-                currentUserId={onboardedUserId}
-                myProfilePic={profileImage}
-                myFollowingIds={followingIds}
-            />
-            ))
-        ) : (
-            <p className='text-center py-10'>No posts.</p>
-        )}
-        </main>
-    );
-    }
-    ```
+return (
+    <main className='min-h-screen w-full'>
+    {posts.length ? (
+        posts.map((post) => (
+        <Post
+            {...post}
+            key={post.id}
+            currentUserId={onboardedUserId}
+            myProfilePic={profileImage}
+            myFollowingIds={followingIds}
+        />
+        ))
+    ) : (
+        <p className='text-center py-10'>No posts.</p>
+    )}
+    </main>
+);
+}
+```

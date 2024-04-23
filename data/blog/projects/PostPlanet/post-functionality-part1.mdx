@@ -3,118 +3,118 @@ title: Post Functionality - Part. 1
 date: '2024-04-11'
 tags: ['project', 'Next.js', 'server actions', 'PostPlanet']
 draft: false
-summary: 서버 액션을 활용한 텍스트 & 이미지 게시
+summary: 서버 액션을 활용한 텍스트/이미지 게시
 ---
 
-- 콘텐츠 게시와 답글을 다는 것은 **props**로 둘을 구분하여 하나의 컴포넌트 `<PostForm />`을 재사용하였다.
+콘텐츠 게시와 답글을 다는 것은 **props**로 둘을 구분하여 하나의 컴포넌트 `<PostForm />`을 재사용하였다.
 
-  ```tsx:components/post-form.tsx
-  'use client';
+```tsx:components/post-form.tsx
+'use client';
 
-  const initialState = {
-    message: '',
-  };
+const initialState = {
+  message: '',
+};
 
-  export default function PostForm({
-    postId,
-    isForPost,
-    isForDialog,
-    isForReply,
-    userId,
-    setOpen,
-  }: PostFormPorps) {
-    const [text, setText] = useState('');
-    const [mounted, setMounted] = useState(false);
-    const [fileUrl, setFileUrl] = useState('');
-    const [state, postAction] = useFormState(
-      isForReply ? replyToPost : createPost,
-      initialState
-    );
-    const { message } = state;
+export default function PostForm({
+  postId,
+  isForPost,
+  isForDialog,
+  isForReply,
+  userId,
+  setOpen,
+}: PostFormPorps) {
+  const [text, setText] = useState('');
+  const [mounted, setMounted] = useState(false);
+  const [fileUrl, setFileUrl] = useState('');
+  const [state, postAction] = useFormState(
+    isForReply ? replyToPost : createPost,
+    initialState
+  );
+  const { message } = state;
 
-    useEffect(() => {
-      setMounted(true);
-    }, []);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
-    useEffect(() => {
-      if (message === 'Success') {
-        setText('');
-        setFileUrl('');
-        setOpen && setOpen(false);
-      } else if (message) {
-        toast(message);
-      }
-    }, [message, setOpen]);
+  useEffect(() => {
+    if (message === 'Success') {
+      setText('');
+      setFileUrl('');
+      setOpen && setOpen(false);
+    } else if (message) {
+      toast(message);
+    }
+  }, [message, setOpen]);
 
-    return (
-      <form
-        action={postAction}
-      >
-        <section className='flex gap-2'>
-          {mounted && (
-            <TextareaAutosize
-              className='resize-none w-full outline-none my-auto text-xl hide-scrollbar'
-              minRows={isForDialog ? 3 : 1}
-              placeholder={
-                isForReply ? 'Post your reply...' : 'What is happening?!'
-              }
-              autoFocus
-              id='text'
-              name='text'
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-            />
-          )}
-        </section>
-        <div className='justify-end flex items-center gap-2'>
-          <UploadBtn setFileUrl={setFileUrl} />
-          <Input className='hidden' name='fileUrl' value={fileUrl} readOnly />
-          {!isForPost && (
-            <Input className='hidden' name='postId' value={postId} readOnly />
-          )}
-          {isForDialog && (
-            <Input
-              className='hidden'
-              name='isForDialog'
-              value={String(isForDialog)}
-              readOnly
-            />
-          )}
-          <Input className='hidden' name='userId' value={userId} readOnly />
-          <SubmitButton text={text} file={fileUrl} isForReply={isForReply} />
-        </div>
-      </form>
-    );
-  }
+  return (
+    <form
+      action={postAction}
+    >
+      <section className='flex gap-2'>
+        {mounted && (
+          <TextareaAutosize
+            className='resize-none w-full outline-none my-auto text-xl hide-scrollbar'
+            minRows={isForDialog ? 3 : 1}
+            placeholder={
+              isForReply ? 'Post your reply...' : 'What is happening?!'
+            }
+            autoFocus
+            id='text'
+            name='text'
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+          />
+        )}
+      </section>
+      <div className='justify-end flex items-center gap-2'>
+        <UploadBtn setFileUrl={setFileUrl} />
+        <Input className='hidden' name='fileUrl' value={fileUrl} readOnly />
+        {!isForPost && (
+          <Input className='hidden' name='postId' value={postId} readOnly />
+        )}
+        {isForDialog && (
+          <Input
+            className='hidden'
+            name='isForDialog'
+            value={String(isForDialog)}
+            readOnly
+          />
+        )}
+        <Input className='hidden' name='userId' value={userId} readOnly />
+        <SubmitButton text={text} file={fileUrl} isForReply={isForReply} />
+      </div>
+    </form>
+  );
+}
 
-  function SubmitButton({ text, file, isForReply }: SubmitButtonProps) {
-    const { pending } = useFormStatus();
+function SubmitButton({ text, file, isForReply }: SubmitButtonProps) {
+  const { pending } = useFormStatus();
 
-    return (
-      <Button
-        className='rounded-full h-8 w-[66px] text-base font-semibold'
-        disabled={(!text.trim() && !file) || pending}
-      >
-        {isForReply ? (
-          pending ? (
-            <span className='pending'>
-              <span></span>
-              <span></span>
-              <span></span>
-            </span>
-          ) : (
-            'Reply'
-          )
-        ) : pending ? (
+  return (
+    <Button
+      className='rounded-full h-8 w-[66px] text-base font-semibold'
+      disabled={(!text.trim() && !file) || pending}
+    >
+      {isForReply ? (
+        pending ? (
           <span className='pending'>
             <span></span>
             <span></span>
             <span></span>
           </span>
         ) : (
-          'Post'
-        )}
-      </Button>
-    );
-  }
-  ```
+          'Reply'
+        )
+      ) : pending ? (
+        <span className='pending'>
+          <span></span>
+          <span></span>
+          <span></span>
+        </span>
+      ) : (
+        'Post'
+      )}
+    </Button>
+  );
+}
+```

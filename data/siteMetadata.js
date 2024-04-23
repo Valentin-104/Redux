@@ -2,9 +2,9 @@
 
 /** @type {import("pliny/config").PlinyConfig } */
 const siteMetadata = {
-  title: "Youan's blog",
-  author: '유안',
-  headerTitle: "Youan's blog",
+  title: "Asher's blog",
+  author: 'Asher',
+  headerTitle: "Asher's blog",
   description: 'Welcome to my personal blog 😍',
   language: 'en-us',
   theme: 'system', // system, dark or light
@@ -14,7 +14,7 @@ const siteMetadata = {
   image: '/static/images/avatar.JPEG',
   socialBanner: '/static/images/logo.png',
   email: 'valentink1495@gmail.com',
-  twitter: 'https://twitter.com/Youan_Kim',
+  twitter: 'https://twitter.com/SimplyAsher14',
   github: 'https://github.com/Valentin1495',
   // instagram: 'https://instagram.com/',
   locale: 'en-US',
