@@ -23,13 +23,6 @@ const projectsData = [
     imgSrc: '/static/images/new-york-times.jpg',
     href: '/blog/projects/NYTimes',
   },
-  {
-    title: 'Coding Interview Prep',
-    description: `과제 대비 React 프로젝트`,
-    imgSrc: '/static/images/interview.jpg',
-    href: '/blog/projects/Coding-Interview-Prep',
-  },
-
 ]
 
 export default projectsData
