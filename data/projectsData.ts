@@ -17,12 +17,6 @@ const projectsData = [
     imgSrc: '/static/images/nft.png',
     href: '/blog/projects/NFT-Trade-Shop',
   },
-  {
-    title: 'NYTimes',
-    description: `뉴욕타임스 API를 활용한 라이브 뉴스 앱`,
-    imgSrc: '/static/images/new-york-times.jpg',
-    href: '/blog/projects/NYTimes',
-  },
 ]
 
 export default projectsData
