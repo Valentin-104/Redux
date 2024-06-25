@@ -12,6 +12,12 @@ const projectsData = [
     href: '/blog/projects/Gemini',
   },
   {
+    title: 'WhisperWave',
+    description: `실시간으로 메시지를 주고받는 그룹 챗 애플리케이션`,
+    imgSrc: '/static/images/white-paper-plane.jpg',
+    href: '/blog/projects/WhisperWave',
+  },
+  {
     title: 'NFT Trade Shop',
     description: `NFT 발행 및 거래부터, 원하는 코인 구매까지 한 곳에서 모든 것이 가능한 ONE-STOP 가상 NFT 거래소`,
     imgSrc: '/static/images/nft.png',

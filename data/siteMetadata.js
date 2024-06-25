@@ -14,7 +14,7 @@ const siteMetadata = {
   image: '/static/images/avatar.JPEG',
   socialBanner: '/static/images/logo.png',
   email: 'valentink1495@gmail.com',
-  twitter: 'https://twitter.com/SimplyAsher14',
+  twitter: 'https://twitter.com/Asher_XIV',
   github: 'https://github.com/Valentin1495',
   // instagram: 'https://instagram.com/',
   locale: 'en-US',
